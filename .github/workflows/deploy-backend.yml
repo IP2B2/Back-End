@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: IP2B2/checkout@v3
 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: IP2B2/setup-java@v3
         with:
           java-version: '17'
 
@@ -28,7 +28,7 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
       - name: Deploy on server via SSH
-        uses: appleboy/ssh-action@v1.0.0
+        uses: IP2B2/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
