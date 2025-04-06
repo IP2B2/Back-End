@@ -7,14 +7,14 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: IP2B2/checkout@v3
+        uses: action/checkout@v3
 
       - name: Set up JDK
-        uses: IP2B2/setup-java@v3
+        uses: action/setup-java@v3
         with:
           java-version: '17'
 
