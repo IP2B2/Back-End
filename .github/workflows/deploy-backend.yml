@@ -28,7 +28,7 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
       - name: Deploy on server via SSH
-        uses: IP2B2/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
