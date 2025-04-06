@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'
+          distribution: 'temurin'
 
       - name: Build backend Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:latest .
