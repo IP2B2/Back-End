@@ -3,7 +3,8 @@ package com.UAIC.ISMA.dao;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
-
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "person")
@@ -12,12 +13,13 @@ public class Person implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+
     private String username;
     private String firstName;
     private String lastName;
     private String role;
     private String password;
-
 
     public Long getId() {
         return id;

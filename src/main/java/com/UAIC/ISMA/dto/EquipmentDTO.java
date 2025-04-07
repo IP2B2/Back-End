@@ -1,15 +1,31 @@
 package com.UAIC.ISMA.dto;
 
+import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
+import java.time.LocalDate;
 
 public class EquipmentDTO {
     private Long id;
     private String name;
-    private String photoUrl;
+    private String photo;
     private String inventoryNumber;
-    private String acquisitionDate;
-    private String availabilityStatus;
-    private String accessRequirements;
+    private LocalDate acquisitionDate;
+    private AvailabilityStatus availabilityStatus;
+    private Long laboratoryId;
 
+    public EquipmentDTO() {}
+
+    public EquipmentDTO(Long id, String name, String photo, String inventoryNumber,
+                        LocalDate acquisitionDate, AvailabilityStatus availabilityStatus, Long laboratoryId) {
+        this.id = id;
+        this.name = name;
+        this.photo = photo;
+        this.inventoryNumber = inventoryNumber;
+        this.acquisitionDate = acquisitionDate;
+        this.availabilityStatus = availabilityStatus;
+        this.laboratoryId = laboratoryId;
+    }
+
+    // Gettere și settere
     public Long getId() {
         return id;
     }
@@ -26,12 +42,12 @@ public class EquipmentDTO {
         this.name = name;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
+    public String getPhoto() {
+        return photo;
     }
 
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 
     public String getInventoryNumber() {
@@ -42,27 +58,27 @@ public class EquipmentDTO {
         this.inventoryNumber = inventoryNumber;
     }
 
-    public String getAcquisitionDate() {
+    public LocalDate getAcquisitionDate() {
         return acquisitionDate;
     }
 
-    public void setAcquisitionDate(String acquisitionDate) {
+    public void setAcquisitionDate(LocalDate acquisitionDate) {
         this.acquisitionDate = acquisitionDate;
     }
 
-    public String getAvailabilityStatus() {
+    public AvailabilityStatus getAvailabilityStatus() {
         return availabilityStatus;
     }
 
-    public void setAvailabilityStatus(String availabilityStatus) {
+    public void setAvailabilityStatus(AvailabilityStatus availabilityStatus) {
         this.availabilityStatus = availabilityStatus;
     }
 
-    public String getAccessRequirements() {
-        return accessRequirements;
+    public Long getLaboratoryId() {
+        return laboratoryId;
     }
 
-    public void setAccessRequirements(String accessRequirements) {
-        this.accessRequirements = accessRequirements;
+    public void setLaboratoryId(Long laboratoryId) {
+        this.laboratoryId = laboratoryId;
     }
 }
