@@ -1,6 +1,7 @@
 package com.UAIC.ISMA.dto;
 
 import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
+
 import java.time.LocalDate;
 
 public class EquipmentDTO {
@@ -12,7 +13,8 @@ public class EquipmentDTO {
     private AvailabilityStatus availabilityStatus;
     private Long laboratoryId;
 
-    public EquipmentDTO() {}
+    public EquipmentDTO() {
+    }
 
     public EquipmentDTO(Long id, String name, String photo, String inventoryNumber,
                         LocalDate acquisitionDate, AvailabilityStatus availabilityStatus, Long laboratoryId) {

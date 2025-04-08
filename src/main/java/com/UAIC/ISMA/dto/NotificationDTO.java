@@ -9,7 +9,8 @@ public class NotificationDTO {
     private Boolean readStatus;
     private Long userId;
 
-    public NotificationDTO() {}
+    public NotificationDTO() {
+    }
 
     public NotificationDTO(Long id, String message, LocalDateTime createdDate, Boolean readStatus, Long userId) {
         this.id = id;

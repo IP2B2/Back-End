@@ -1,12 +1,9 @@
 package com.UAIC.ISMA.dao;
 
-import jakarta.persistence.Id;
-
 import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "lab_documents")

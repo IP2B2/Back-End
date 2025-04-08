@@ -6,7 +6,8 @@ public class RoleDTO {
     private Long id;
     private RoleName roleName;
 
-    public RoleDTO() {}
+    public RoleDTO() {
+    }
 
     public RoleDTO(Long id, RoleName roleName) {
         this.id = id;

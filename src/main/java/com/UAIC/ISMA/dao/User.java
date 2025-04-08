@@ -22,7 +22,6 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String password;
 
-    // Ex: "pending", "active", etc.
     private String status;
 
     @ManyToOne
@@ -54,7 +53,6 @@ public class User implements Serializable {
         this.role = role;
     }
 
-    // Getters and Setters
 
     public Long getId() {
         return id;

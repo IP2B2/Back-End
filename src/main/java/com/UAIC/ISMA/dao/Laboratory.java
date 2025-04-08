@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(name = "laboratories")
@@ -26,7 +25,8 @@ public class Laboratory implements Serializable {
     @OneToMany(mappedBy = "laboratory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LabDocument> labDocuments;
 
-    public Laboratory() {}
+    public Laboratory() {
+    }
 
     public Laboratory(String labName, String description, String location) {
         this.labName = labName;
