@@ -3,9 +3,6 @@ FROM openjdk:17-jdk-slim
 # Set working directory inside the container
 WORKDIR /app
 
-# Run the mvn command to build the jar file
-CMD ["mvn", "clean", "package"]
-
 # Copy the built jar file into the container
 COPY target/ISMA-0.0.1-SNAPSHOT.jar /app/backend.jar
 
