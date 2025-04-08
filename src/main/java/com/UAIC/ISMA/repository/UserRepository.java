@@ -1,12 +1,13 @@
 package com.UAIC.ISMA.repository;
 
-import com.UAIC.ISMA.dao.Person;
+import com.UAIC.ISMA.dao.AuditLog;
+import com.UAIC.ISMA.dao.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface PersonRepository extends JpaRepository<Person, Long> {
-    Optional<Person> findByUsername(String username);
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByUsername(String username);
 }
