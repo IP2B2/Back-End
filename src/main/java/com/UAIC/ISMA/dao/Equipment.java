@@ -37,7 +37,8 @@ public class Equipment implements Serializable {
     @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccessRequest> accessRequests;
 
-    public Equipment() {}
+    public Equipment() {
+    }
 
     public Equipment(String name, String inventoryNumber, LocalDate acquisitionDate,
                      AvailabilityStatus availabilityStatus, String accessRequirements, Laboratory laboratory) {

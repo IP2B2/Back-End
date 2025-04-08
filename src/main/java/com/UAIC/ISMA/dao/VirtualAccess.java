@@ -35,8 +35,6 @@ public class VirtualAccess implements Serializable {
         this.accessRequest = accessRequest;
     }
 
-    // Getters and Setters
-
     public Long getId() {
         return id;
     }

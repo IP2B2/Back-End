@@ -11,7 +11,8 @@ public class RequestDocumentDTO {
     private Long accessRequestId;
     private Long uploadedById;
 
-    public RequestDocumentDTO() {}
+    public RequestDocumentDTO() {
+    }
 
     public RequestDocumentDTO(Long id, String title, String description, String filePath, LocalDateTime uploadedAt, Long accessRequestId, Long uploadedById) {
         this.id = id;

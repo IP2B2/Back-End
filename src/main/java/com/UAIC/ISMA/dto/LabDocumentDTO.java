@@ -10,7 +10,8 @@ public class LabDocumentDTO {
     private LocalDateTime updatedAt;
     private Long laboratoryId;
 
-    public LabDocumentDTO() {}
+    public LabDocumentDTO() {
+    }
 
     public LabDocumentDTO(Long id, String title, String description, String filePath,
                           LocalDateTime updatedAt, Long laboratoryId) {

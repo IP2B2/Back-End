@@ -11,7 +11,8 @@ public class LaboratoryDTO {
     private List<Long> equipmentIds;
     private List<Long> labDocumentIds;
 
-    public LaboratoryDTO() {}
+    public LaboratoryDTO() {
+    }
 
     public LaboratoryDTO(Long id, String labName, String description, String location,
                          List<Long> equipmentIds, List<Long> labDocumentIds) {

@@ -9,7 +9,8 @@ public class UserDTO {
     private String status;
     private RoleName roleName;
 
-    public UserDTO() {}
+    public UserDTO() {
+    }
 
     public UserDTO(Long id, String username, String email, String status, RoleName roleName) {
         this.id = id;

@@ -10,7 +10,8 @@ public class RequestApprovalDTO {
     private Long accessRequestId;
     private Long approverId;
 
-    public RequestApprovalDTO() {}
+    public RequestApprovalDTO() {
+    }
 
     public RequestApprovalDTO(Long id, String approvalStatus, LocalDateTime approvalDate, String comments, Long accessRequestId, Long approverId) {
         this.id = id;

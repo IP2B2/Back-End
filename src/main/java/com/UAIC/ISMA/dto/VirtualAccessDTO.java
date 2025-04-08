@@ -7,7 +7,8 @@ public class VirtualAccessDTO {
     private String username;
     private LocalDateTime issuedDate;
 
-    public VirtualAccessDTO() {}
+    public VirtualAccessDTO() {
+    }
 
     public VirtualAccessDTO(Long id, String username, LocalDateTime issuedDate) {
         this.id = id;

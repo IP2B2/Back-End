@@ -1,16 +1,20 @@
 package com.UAIC.ISMA.config;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import io.jsonwebtoken.security.Keys;
+
 import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);;
+    SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    ;
 
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
@@ -37,7 +41,7 @@ public class JwtUtil {
                 .setSubject(userDetails.getUsername())
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10h
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }

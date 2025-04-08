@@ -10,7 +10,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendEmail(String to, String subject, String text){
+    public void sendEmail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
 
         message.setFrom("mail");
@@ -20,12 +20,5 @@ public class EmailService {
 
         mailSender.send(message);
         System.out.println("Mail sent successfully");
-
-        /* Urmeaza asta in controller-ul de autentificare
-        emailService.sendEmail(
-                     user.getEmail(),
-                    "Confirmare cont",
-                    "Bine ai venit, " + user.getFirstName() + "! Contul tău a fost creat cu succes."
-); */
     }
 }
