@@ -1,10 +1,9 @@
 package com.UAIC.ISMA.controller;
 
+import com.UAIC.ISMA.config.UserDetailsImplService;
 import com.UAIC.ISMA.dto.AuthRequest;
 import com.UAIC.ISMA.dto.AuthResponse;
 import com.UAIC.ISMA.config.JwtUtil;
-import com.UAIC.ISMA.config.PersonDetailsService;
-import com.UAIC.ISMA.dao.Person;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,7 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private PersonDetailsService personDetailsService;
+    private UserDetailsImplService userDetailsService;
 
     @PostMapping("/login")
     public ResponseEntity<?> createToken(@RequestBody AuthRequest authRequest) {
