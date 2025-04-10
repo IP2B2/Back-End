@@ -1,36 +1,54 @@
 package com.UAIC.ISMA.dao;
 
 
+import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "equipment")
 public class Equipment implements Serializable {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "photo_url")
-    private String photoUrl;
+    private String photo;
 
-    @Column(name = "inventory_number", nullable = false)
     private String inventoryNumber;
 
-    @Column(name = "acquisition_date", nullable = false)
-    private String acquisitionDate;
+    private LocalDate acquisitionDate;
 
-    @Column(name = "availability_status", nullable = false)
-    private String availabilityStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AvailabilityStatus availabilityStatus;
 
-    @Column(name = "access_requirements", nullable = false)
     private String accessRequirements;
+
+    @ManyToOne
+    @JoinColumn(name = "lab_id")
+    private Laboratory laboratory;
+
+    @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccessRequest> accessRequests;
+
+    public Equipment() {
+    }
+
+    public Equipment(String name, String inventoryNumber, LocalDate acquisitionDate,
+                     AvailabilityStatus availabilityStatus, String accessRequirements, Laboratory laboratory) {
+        this.name = name;
+        this.inventoryNumber = inventoryNumber;
+        this.acquisitionDate = acquisitionDate;
+        this.availabilityStatus = availabilityStatus;
+        this.accessRequirements = accessRequirements;
+        this.laboratory = laboratory;
+    }
 
     public Long getId() {
         return id;
@@ -48,12 +66,12 @@ public class Equipment implements Serializable {
         this.name = name;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
+    public String getPhoto() {
+        return photo;
     }
 
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 
     public String getInventoryNumber() {
@@ -64,19 +82,19 @@ public class Equipment implements Serializable {
         this.inventoryNumber = inventoryNumber;
     }
 
-    public String getAcquisitionDate() {
+    public LocalDate getAcquisitionDate() {
         return acquisitionDate;
     }
 
-    public void setAcquisitionDate(String acquisitionDate) {
+    public void setAcquisitionDate(LocalDate acquisitionDate) {
         this.acquisitionDate = acquisitionDate;
     }
 
-    public String getAvailabilityStatus() {
+    public AvailabilityStatus getAvailabilityStatus() {
         return availabilityStatus;
     }
 
-    public void setAvailabilityStatus(String availabilityStatus) {
+    public void setAvailabilityStatus(AvailabilityStatus availabilityStatus) {
         this.availabilityStatus = availabilityStatus;
     }
 
@@ -86,5 +104,21 @@ public class Equipment implements Serializable {
 
     public void setAccessRequirements(String accessRequirements) {
         this.accessRequirements = accessRequirements;
+    }
+
+    public Laboratory getLaboratory() {
+        return laboratory;
+    }
+
+    public void setLaboratory(Laboratory laboratory) {
+        this.laboratory = laboratory;
+    }
+
+    public List<AccessRequest> getAccessRequests() {
+        return accessRequests;
+    }
+
+    public void setAccessRequests(List<AccessRequest> accessRequests) {
+        this.accessRequests = accessRequests;
     }
 }

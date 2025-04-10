@@ -2,8 +2,11 @@ package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dao.Laboratory;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
+import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import com.UAIC.ISMA.service.LaboratoryService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,32 +23,39 @@ public class LaboratoryController {
     }
 
     @GetMapping
-    public List<LaboratoryDTO> getLaboratories() {
-        return laboratoryService.getAlLaboratories();
+    public ResponseEntity<List<LaboratoryDTO>> getAllLaboratories() {
+        List<LaboratoryDTO> labs = laboratoryService.getAlLaboratories();
+        return ResponseEntity.ok(labs);
     }
 
     @GetMapping("/{id}")
-    public LaboratoryDTO getLaboratory(@PathVariable Long id) {
-        return laboratoryService.getLaboratoryById(id).orElseThrow(() -> new RuntimeException("Laboratory not found"));
+    public ResponseEntity<LaboratoryDTO> getLaboratoryById(@PathVariable long id) {
+        LaboratoryDTO lab = laboratoryService.getLaboratoryById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Laboratory not found with id: " + id));
+        return ResponseEntity.ok(lab);
     }
 
     @PostMapping
-    public LaboratoryDTO createLaboratory(@RequestBody LaboratoryDTO laboratoryDTO) {
-        return laboratoryService.createLaboratory(laboratoryDTO);
+    public ResponseEntity<LaboratoryDTO> createLaboratory(@RequestBody LaboratoryDTO laboratoryDTO) {
+        LaboratoryDTO created = laboratoryService.createLaboratory(laboratoryDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public LaboratoryDTO updateLaboratory(@PathVariable Long id, @RequestBody LaboratoryDTO laboratoryDTO) {
-        return laboratoryService.updateLaboratory(id, laboratoryDTO);
+    public ResponseEntity<LaboratoryDTO> updateLaboratory(@PathVariable Long id, @RequestBody LaboratoryDTO laboratoryDTO) {
+        LaboratoryDTO updated = laboratoryService.updateLaboratory(id, laboratoryDTO);
+        return ResponseEntity.ok(updated);
     }
 
     @PatchMapping("/{id}")
-    public LaboratoryDTO patchLaboratory(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        return laboratoryService.partialUpdateLaboratory(id, updates);
+    public ResponseEntity<LaboratoryDTO> patchLaboratory(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        LaboratoryDTO updated = laboratoryService.partialUpdateLaboratory(id, updates);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteLaboratory(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteLaboratory(@PathVariable Long id) {
         laboratoryService.deleteLaboratory(id);
+        return ResponseEntity.noContent().build();
     }
 }

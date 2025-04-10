@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.io.Serializable;
 
-
 @Entity
 @Table(name = "person")
 public class Person implements Serializable {
@@ -12,12 +11,13 @@ public class Person implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+
     private String username;
     private String firstName;
     private String lastName;
     private String role;
     private String password;
-
 
     public Long getId() {
         return id;

@@ -1,9 +1,9 @@
 package com.UAIC.ISMA.repository;
 
-import com.UAIC.ISMA.dao.Equipment;
+import com.UAIC.ISMA.dao.RequestDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
+public interface RequestDocumentRepository extends JpaRepository<RequestDocument, Long> {
 }

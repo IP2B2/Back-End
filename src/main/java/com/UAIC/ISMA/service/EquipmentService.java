@@ -1,10 +1,17 @@
 package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.dao.Equipment;
+import com.UAIC.ISMA.dao.Laboratory;
+import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
 import com.UAIC.ISMA.dto.EquipmentDTO;
+import com.UAIC.ISMA.exception.EntityNotFoundException;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.repository.EquipmentRepository;
+import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,9 +21,11 @@ import java.util.stream.Collectors;
 public class EquipmentService {
 
     private final EquipmentRepository equipmentRepository;
+    private final LaboratoryRepository laboratoryRepository;
 
-    public EquipmentService(EquipmentRepository equipmentRepository) {
+    public EquipmentService(EquipmentRepository equipmentRepository, LaboratoryRepository laboratoryRepository) {
         this.equipmentRepository = equipmentRepository;
+        this.laboratoryRepository = laboratoryRepository;
     }
 
     public List<EquipmentDTO> getAllEquipments() {
@@ -29,16 +38,20 @@ public class EquipmentService {
     }
 
     public EquipmentDTO createEquipment(EquipmentDTO equipmentDTO) {
-        Equipment equipment = new Equipment();
+        Equipment equipment = convertToEntity(equipmentDTO);
         Equipment savedEquipment = equipmentRepository.save(equipment);
         return convertToDTO(savedEquipment);
     }
 
     public EquipmentDTO updateEquipment(EquipmentDTO equipmentDTO, Long id) {
+        if (!equipmentRepository.existsById(id)) {
+            throw new EntityNotFoundException("Equipment not found with id: " + id);
+        }
+
         Equipment equipment = convertToEntity(equipmentDTO);
         equipment.setId(id);
-        Equipment updatedEquipment = equipmentRepository.save(equipment);
-        return convertToDTO(updatedEquipment);
+        Equipment updated = equipmentRepository.save(equipment);
+        return convertToDTO(updated);
     }
 
     public void deleteEquipment(Long id) {
@@ -47,51 +60,71 @@ public class EquipmentService {
 
     public EquipmentDTO partialUpdateEquipment(Long id, Map<String, Object> updates) {
         Equipment equipment = equipmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Equipment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Equipment not found with id: " + id));
 
         updates.forEach((key, value) -> {
             switch (key) {
                 case "name" -> equipment.setName((String) value);
-                case "photoUrl" -> equipment.setPhotoUrl((String) value);
+                case "photoUrl" -> equipment.setPhoto((String) value);
                 case "inventoryNumber" -> equipment.setInventoryNumber((String) value);
                 case "acquisitionDate" -> {
-                    String acquisitionDate = (String) value;
-                    if (!acquisitionDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                        throw new RuntimeException("Invalid acquisition date format");
+                    try {
+                        String dateStr = (String) value;
+                        LocalDate date = LocalDate.parse(dateStr);
+                        equipment.setAcquisitionDate(date);
+                    } catch (DateTimeParseException e) {
+                        throw new InvalidInputException("Invalid acquisition date format. Expected yyyy-MM-dd");
                     }
-                    equipment.setAcquisitionDate(acquisitionDate);
                 }
-                case "availabilityStatus" -> equipment.setAvailabilityStatus((String) value);
-                case "accesRequirements" -> equipment.setAccessRequirements((String) value);
-                default -> throw new RuntimeException("Invalid equipment key");
-
+                case "availabilityStatus" -> {
+                    try {
+                        AvailabilityStatus status = AvailabilityStatus.valueOf(((String) value).toUpperCase());
+                        equipment.setAvailabilityStatus(status);
+                    } catch (IllegalArgumentException e) {
+                        throw new InvalidInputException("Invalid availability status value");
+                    }
+                }
+                case "accessRequirements" -> equipment.setAccessRequirements((String) value);
+                default -> throw new InvalidInputException("Invalid update field: " + key);
             }
         });
 
-        Equipment updatedEquipment = equipmentRepository.save(equipment);
-        return convertToDTO(updatedEquipment);
+        Equipment updated = equipmentRepository.save(equipment);
+        return convertToDTO(updated);
     }
 
     private EquipmentDTO convertToDTO(Equipment equipment) {
         EquipmentDTO dto = new EquipmentDTO();
         dto.setId(equipment.getId());
         dto.setName(equipment.getName());
-        dto.setPhotoUrl(equipment.getPhotoUrl());
+        dto.setPhoto(equipment.getPhoto());
         dto.setInventoryNumber(equipment.getInventoryNumber());
         dto.setAcquisitionDate(equipment.getAcquisitionDate());
         dto.setAvailabilityStatus(equipment.getAvailabilityStatus());
         dto.setAccessRequirements(equipment.getAccessRequirements());
+
+        if(equipment.getLaboratory() != null) {
+            dto.setLaboratoryId(equipment.getLaboratory().getId());
+        }
+
         return dto;
     }
 
     private Equipment convertToEntity(EquipmentDTO dto) {
         Equipment e = new Equipment();
         e.setName(dto.getName());
-        e.setPhotoUrl(dto.getPhotoUrl());
+        e.setPhoto(dto.getPhoto());
         e.setInventoryNumber(dto.getInventoryNumber());
         e.setAcquisitionDate(dto.getAcquisitionDate());
         e.setAvailabilityStatus(dto.getAvailabilityStatus());
         e.setAccessRequirements(dto.getAccessRequirements());
+
+        if(dto.getLaboratoryId() != null) {
+            Laboratory lab = laboratoryRepository.findById(dto.getLaboratoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("Laboratory not found with id: " + dto.getLaboratoryId()));
+            e.setLaboratory(lab);
+        }
+
         return e;
     }
 }

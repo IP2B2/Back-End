@@ -2,6 +2,8 @@ package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.dao.Laboratory;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
+import com.UAIC.ISMA.exception.EntityNotFoundException;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.springframework.stereotype.Service;
 
@@ -29,8 +31,9 @@ public class LaboratoryService {
     }
 
     public LaboratoryDTO createLaboratory(LaboratoryDTO laboratoryDTO) {
-        Laboratory laboratory = new Laboratory();
-        return convertToDTO(laboratoryRepository.save(laboratory));
+        Laboratory laboratory = convertToEntity(laboratoryDTO);
+        Laboratory savedLaboratory = laboratoryRepository.save(laboratory);
+        return convertToDTO(savedLaboratory);
     }
 
     public LaboratoryDTO updateLaboratory(Long id, LaboratoryDTO laboratoryDTO) {
@@ -45,13 +48,14 @@ public class LaboratoryService {
 
     public LaboratoryDTO partialUpdateLaboratory(Long id, Map<String, Object> updates) {
         Laboratory laboratory = laboratoryRepository.findById(id).orElseThrow(()
-                -> new RuntimeException("Laboratory with id " + id + " not found"));
+                -> new EntityNotFoundException("Laboratory with id " + id + " not found"));
 
         updates.forEach((key, value) -> {
             switch (key) {
-                case "name" -> laboratory.setName((String) value);
+                case "labName" -> laboratory.setLabName((String) value);
                 case "description" -> laboratory.setDescription((String) value);
-                default -> throw new RuntimeException("Invalid key " + key);
+                case "location" -> laboratory.setLocation((String) value);
+                default -> throw new InvalidInputException("Invalid key " + key);
             }
         });
 
@@ -62,15 +66,29 @@ public class LaboratoryService {
     private LaboratoryDTO convertToDTO(Laboratory lab) {
         LaboratoryDTO dto = new LaboratoryDTO();
         dto.setId(lab.getId());
-        dto.setName(lab.getName());
+        dto.setLabName(lab.getLabName());
         dto.setDescription(lab.getDescription());
+        dto.setLocation(lab.getLocation());
+
+        if(lab.getEquipments() != null) {
+            dto.setEquipmentIds(lab.getEquipments().stream()
+                    .map(e -> e.getId()).collect(Collectors.toList()));
+        }
+
+        if(lab.getLabDocuments() != null) {
+            dto.setLabDocumentIds(lab.getLabDocuments().stream()
+                    .map(e -> e.getId()).collect(Collectors.toList()));
+        }
+
         return dto;
     }
 
     private Laboratory convertToEntity(LaboratoryDTO dto) {
         Laboratory lab = new Laboratory();
-        lab.setName(dto.getName());
+        lab.setLabName(dto.getLabName());
         lab.setDescription(dto.getDescription());
+        lab.setLocation(dto.getLocation());
+
         return lab;
     }
 
