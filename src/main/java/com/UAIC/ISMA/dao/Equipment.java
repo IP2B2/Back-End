@@ -98,12 +98,20 @@ public class Equipment implements Serializable {
         this.availabilityStatus = availabilityStatus;
     }
 
-    public String getAccessRequirements() {
-        return accessRequirements;
+    public Laboratory getLaboratory() {
+        return laboratory;
     }
 
-    public void setAccessRequirements(String accessRequirements) {
-        this.accessRequirements = accessRequirements;
+    public void setLaboratory(Laboratory laboratory) {
+        this.laboratory = laboratory;
+    }
+
+    public List<AccessRequest> getAccessRequests() {
+        return accessRequests;
+    }
+
+    public void setAccessRequests(List<AccessRequest> accessRequests) {
+        this.accessRequests = accessRequests;
     }
 
     public Laboratory getLaboratory() {
