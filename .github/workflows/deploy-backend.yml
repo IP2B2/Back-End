@@ -19,8 +19,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build the jar file
-        run: mvn clean package -DskipTests
+          #- name: Build the jar file
+          #run: mvn clean package -DskipTests
 
       - name: Build backend Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:latest .
@@ -40,4 +40,4 @@ jobs:
           script: |
             cd ~/DevOps/
             docker-compose pull backend
-            docker-compose up -d backend
+            docker-compose --env-file .env up -d backend
