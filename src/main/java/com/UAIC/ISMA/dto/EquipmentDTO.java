@@ -12,12 +12,14 @@ public class EquipmentDTO {
     private LocalDate acquisitionDate;
     private AvailabilityStatus availabilityStatus;
     private Long laboratoryId;
+    private String accessRequirements;
 
     public EquipmentDTO() {
     }
 
     public EquipmentDTO(Long id, String name, String photo, String inventoryNumber,
-                        LocalDate acquisitionDate, AvailabilityStatus availabilityStatus, Long laboratoryId) {
+                        LocalDate acquisitionDate, AvailabilityStatus availabilityStatus,
+                        Long laboratoryId, String accessRequirements) {
         this.id = id;
         this.name = name;
         this.photo = photo;
@@ -25,9 +27,10 @@ public class EquipmentDTO {
         this.acquisitionDate = acquisitionDate;
         this.availabilityStatus = availabilityStatus;
         this.laboratoryId = laboratoryId;
+        this.accessRequirements = accessRequirements;
     }
 
-    // Gettere și settere
+    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -82,5 +85,13 @@ public class EquipmentDTO {
 
     public void setLaboratoryId(Long laboratoryId) {
         this.laboratoryId = laboratoryId;
+    }
+
+    public String getAccessRequirements() {
+        return accessRequirements;
+    }
+
+    public void setAccessRequirements(String accessRequirements) {
+        this.accessRequirements = accessRequirements;
     }
 }
