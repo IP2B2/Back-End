@@ -18,9 +18,12 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      
+      - name: Delete the application.properties file
+        run: rm ./src/main/resources/application.properties  
 
       - name: Build the jar file
-        run: mvn clean package -DskipTests
+        run: chmod +x ./mvnw && ./mvnw clean package -DskipTests
 
       - name: Build backend Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:latest .
@@ -39,5 +42,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/DevOps/
+            chmod +x start.sh && ./start.sh
             docker-compose pull backend
             docker-compose up -d backend
