@@ -1,16 +1,13 @@
 package com.UAIC.ISMA.controller;
 
-import com.UAIC.ISMA.dao.Laboratory;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
 import com.UAIC.ISMA.exception.EntityNotFoundException;
-import com.UAIC.ISMA.repository.LaboratoryRepository;
 import com.UAIC.ISMA.service.LaboratoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/laboratories")
@@ -44,12 +41,6 @@ public class LaboratoryController {
     @PutMapping("/{id}")
     public ResponseEntity<LaboratoryDTO> updateLaboratory(@PathVariable Long id, @RequestBody LaboratoryDTO laboratoryDTO) {
         LaboratoryDTO updated = laboratoryService.updateLaboratory(id, laboratoryDTO);
-        return ResponseEntity.ok(updated);
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<LaboratoryDTO> patchLaboratory(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        LaboratoryDTO updated = laboratoryService.partialUpdateLaboratory(id, updates);
         return ResponseEntity.ok(updated);
     }
 
