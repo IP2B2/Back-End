@@ -1,5 +1,6 @@
 package com.UAIC.ISMA.config;
 
+import com.UAIC.ISMA.service.UserDetailsImplService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

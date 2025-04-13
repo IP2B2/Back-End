@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.config.JwtUtil;
-import com.UAIC.ISMA.config.UserDetailsImplService;
+import com.UAIC.ISMA.service.UserDetailsImplService;
 import com.UAIC.ISMA.dto.AuthRequest;
 import com.UAIC.ISMA.dto.AuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;

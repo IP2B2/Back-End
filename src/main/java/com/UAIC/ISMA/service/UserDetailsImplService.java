@@ -1,5 +1,6 @@
-package com.UAIC.ISMA.config;
+package com.UAIC.ISMA.service;
 
+import com.UAIC.ISMA.config.UserDetailsImpl;
 import com.UAIC.ISMA.dao.User;
 import com.UAIC.ISMA.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;

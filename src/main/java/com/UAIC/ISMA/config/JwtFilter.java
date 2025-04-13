@@ -1,5 +1,6 @@
 package com.UAIC.ISMA.config;
 
+import com.UAIC.ISMA.service.UserDetailsImplService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

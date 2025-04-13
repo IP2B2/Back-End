@@ -1,7 +1,6 @@
 package com.UAIC.ISMA.controller;
 
 
-import com.UAIC.ISMA.dao.Equipment;
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.service.EquipmentService;
@@ -10,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/equipment")
@@ -45,12 +42,6 @@ public class EquipmentController {
     @PutMapping("/{id}")
     public ResponseEntity<EquipmentDTO> updateEquipment(@PathVariable Long id, @RequestBody EquipmentDTO equipmentDTO) {
         EquipmentDTO updated = equipmentService.updateEquipment(equipmentDTO, id);
-        return ResponseEntity.ok(updated);
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<EquipmentDTO> patchEquipment(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        EquipmentDTO updated = equipmentService.partialUpdateEquipment(id, updates);
         return ResponseEntity.ok(updated);
     }
 
