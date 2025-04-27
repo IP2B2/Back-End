@@ -6,7 +6,7 @@
   
 2. **Code Review**: Fiecare PR trebuie să fie revizuit de cel puțin 2 persoane. Cei 2 membri care aprobă PR-ul pe GitHub trebuie să lase un comentariu cu mesajul `"reviewed"` pe Linear.
 
-3. **Denominare Branch-uri**: Numele branch-urilor trebuie să includă ID-ul taskului și un nume sugestiv care descrie modificările aduse. De exemplu: `#789-create-laboratory-class`.
+3. **Denumire Branch-uri**: Numele branch-urilor trebuie să includă ID-ul taskului și un nume sugestiv care descrie modificările aduse. De exemplu: `#789-create-laboratory-class`.
 
 4. **Mesajul de Commit**: Mesajul de commit trebuie să includă ID-ul taskului și o descriere clară a modificărilor efectuate. Exemplu: `#789 am creat clasa pentru laborator`.
 
