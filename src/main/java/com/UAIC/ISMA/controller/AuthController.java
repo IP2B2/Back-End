@@ -1,6 +1,7 @@
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.config.JwtUtil;
+import com.UAIC.ISMA.dto.ResetPasswordRequest;
 import com.UAIC.ISMA.service.UserDetailsImplService;
 import com.UAIC.ISMA.dto.AuthRequest;
 import com.UAIC.ISMA.dto.AuthResponse;
@@ -49,5 +50,28 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Something went wrong"));
         }
     }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+
+            if (userDetails == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+            }
+
+            // You can create a special reset token, or reuse JWT with a special claim
+            String resetToken = jwtUtil.generateResetToken(userDetails);
+
+
+            // In a real project, here you'd send an email with the token link to the user
+            // For now, just return the token in the response (simulate sending)
+
+            return ResponseEntity.ok(Map.of("resetToken", resetToken));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Something went wrong"));
+        }
+    }
+
 
 }

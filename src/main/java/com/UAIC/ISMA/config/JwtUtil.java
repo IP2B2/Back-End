@@ -13,8 +13,8 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    ;
+    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
 
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
@@ -50,5 +50,14 @@ public class JwtUtil {
         final String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
-}
 
+    public String generateResetToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .claim("purpose", "reset_password")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 mins validity
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .compact();
+    }
+}
