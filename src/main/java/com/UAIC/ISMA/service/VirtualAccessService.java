@@ -7,13 +7,16 @@ import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.VirtualAccessRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Transactional
 @Service
 public class VirtualAccessService {
 
@@ -45,23 +48,32 @@ public class VirtualAccessService {
         if (dto.getPassword() == null || dto.getPassword().isEmpty()) {
             throw new InvalidInputException("Password cannot be empty");
         }
+        if (dto.getIssuedDate() == null) {
+            dto.setIssuedDate(LocalDateTime.now());
+        }
         VirtualAccess virtualAccess = convertToEntity(dto);
         VirtualAccess saved = virtualAccessRepository.save(virtualAccess);
         return convertToDTO(saved);
     }
 
     public void deleteById(Long id) {
-        virtualAccessRepository.deleteById(id);
+        VirtualAccess virtualAccess = virtualAccessRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("VirtualAccess not found with id " + id));
+        virtualAccessRepository.delete(virtualAccess);
     }
 
+
     public VirtualAccessDTO update(Long id, VirtualAccessDTO dto) {
+        if (dto.getIssuedDate() == null) {
+            dto.setIssuedDate(LocalDateTime.now());
+        }
         return virtualAccessRepository.findById(id)
                 .map(existing -> {
                     existing.setUsername(dto.getUsername());
                     existing.setPassword(dto.getPassword());
                     existing.setIssuedDate(dto.getIssuedDate());
-                    AccessRequest accessRequest = accessRequestRepository.findById(dto.getAccessRequestId())
-                            .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + dto.getAccessRequestId()));
+                    AccessRequest accessRequest = accessRequestRepository.findById(dto.getId())
+                            .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + dto.getId()));
                     existing.setAccessRequest(accessRequest);
                     VirtualAccess updated = virtualAccessRepository.save(existing);
                     return convertToDTO(updated);
@@ -79,8 +91,8 @@ public class VirtualAccessService {
     }
 
     private VirtualAccess convertToEntity(VirtualAccessDTO dto) {
-        AccessRequest accessRequest = accessRequestRepository.findById(dto.getAccessRequestId())
-                .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + dto.getAccessRequestId()));
+        AccessRequest accessRequest = accessRequestRepository.findById(dto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + dto.getId()));
         return new VirtualAccess(
                 dto.getUsername(),
                 dto.getPassword(),

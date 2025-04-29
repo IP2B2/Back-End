@@ -3,7 +3,7 @@ package com.UAIC.ISMA.dto;
 import java.time.LocalDateTime;
 
 public class VirtualAccessDTO {
-    private Long accessRequestId;
+    private Long id;
     private String username;
     private String password;
     private LocalDateTime issuedDate;
@@ -11,19 +11,19 @@ public class VirtualAccessDTO {
     public VirtualAccessDTO() {
     }
 
-    public VirtualAccessDTO(Long accessRequestId, String username, String password, LocalDateTime issuedDate) {
-        this.accessRequestId = accessRequestId;
+    public VirtualAccessDTO(Long id, String username, String password, LocalDateTime issuedDate) {
+        this.id = id;
         this.username = username;
         this.password = password;
         this.issuedDate = issuedDate;
     }
 
-    public Long getAccessRequestId() {
-        return accessRequestId;
+    public Long getId() {
+        return id;
     }
 
-    public void setAccessRequestId(Long accessRequestId) {
-        this.accessRequestId = accessRequestId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUsername() {
