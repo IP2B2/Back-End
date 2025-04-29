@@ -30,7 +30,7 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (request.getRequestURI().startsWith("/auth/")) {
+        if (request.getRequestURI().startsWith("/virtual-access/")) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -18,6 +18,7 @@ public class AccessRequest implements Serializable {
 
     private LocalDateTime requestDate;
 
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RequestStatus status;
@@ -107,6 +108,21 @@ public class AccessRequest implements Serializable {
         this.virtualAccess = virtualAccess;
     }
 
+    public RequestType getRequestType() {
+        return requestType;
+    }
+
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
+    }
+
+    public RequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RequestStatus status) {
+        this.status = status;
+    }
 
     public Long getId() {
         return id;
