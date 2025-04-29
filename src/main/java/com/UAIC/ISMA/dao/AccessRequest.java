@@ -111,4 +111,37 @@ public class AccessRequest implements Serializable {
     public Long getId() {
         return id;
     }
+    public LocalDateTime getRequestDate() {
+        return requestDate;
+    }
+
+    public void setRequestDate(LocalDateTime requestDate) {
+        this.requestDate = requestDate;
+    }
+
+    public RequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RequestStatus status) {
+        this.status = status;
+    }
+
+    public RequestType getRequestType() {
+        return requestType;
+    }
+
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
+    }
+
+    public String getProposalFile() {
+        return proposalFile;
+    }
+
+    public void setProposalFile(String proposalFile) {
+        this.proposalFile = proposalFile;
+    }
+
+
 }
