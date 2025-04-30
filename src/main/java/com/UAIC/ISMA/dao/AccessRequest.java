@@ -135,22 +135,6 @@ public class AccessRequest implements Serializable {
         this.requestDate = requestDate;
     }
 
-    public RequestStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RequestStatus status) {
-        this.status = status;
-    }
-
-    public RequestType getRequestType() {
-        return requestType;
-    }
-
-    public void setRequestType(RequestType requestType) {
-        this.requestType = requestType;
-    }
-
     public String getProposalFile() {
         return proposalFile;
     }
