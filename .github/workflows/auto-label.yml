@@ -1,0 +1,79 @@
+name: Auto Label PR Queue Position & Needs Work
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, synchronize]  # Triggers for new, reopened, and label changes
+  pull_request_review:
+    types: [submitted]  # Triggered when a review is submitted
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR based on queue position
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const { data: openPRs } = await github.rest.pulls.list({
+              owner: repo.owner,
+              repo: repo.repo,
+              state: 'open',
+              base: 'master'
+            });
+
+            let first = true;
+            for (const pr of openPRs) {
+              const existingLabels = pr.labels.map(l => l.name);
+              if (existingLabels.includes('queued') || existingLabels.includes('ready-to-run')) {
+                continue; // Skip if already labeled
+              }
+
+              const label = first ? 'ready-to-run' : 'queued';
+              await github.rest.issues.addLabels({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: pr.number,
+                labels: [label]
+              });
+
+              first = false;
+            }
+
+  review-label:
+    runs-on: ubuntu-latest
+    needs: auto-label
+    steps:
+      - name: Label PR with 'needs-work' if review requests changes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const reviewState = context.payload.review.state;
+
+            if (reviewState === 'CHANGES_REQUESTED') {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['needs-work']
+              });
+
+              const { data: openPRs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                base: 'master'
+              });
+
+              let nextPR = openPRs.find(pr => !pr.labels.some(label => label.name === 'needs-work'));
+              if (nextPR) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: nextPR.number,
+                  labels: ['ready-to-run']
+                });
+              }
+            }
+
