@@ -33,7 +33,6 @@ public class RegisterController {
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> registerUser(@RequestBody RegisterRequest request) {
 
-        // VALIDARE username/email
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity
                     .badRequest()
@@ -42,21 +41,15 @@ public class RegisterController {
 
 
 
-        // CREARE user
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // Atribuire rol
-        Role roleAdmin = roleRepository.findByRoleName(RoleName.ADMIN)
-                .orElseThrow(() -> new RuntimeException("ADMIN role not found in DB"));
 
-        user.setRole(roleAdmin);
 
         userRepository.save(user);
 
-        //TRIMITERE EMAIL CONFIRMARE
         String subject = "Registration Confirmation";
         String text = "Hello " + user.getUsername() + ",\n\nYour account has been successfully created!";
         System.out.println(user.getEmail());

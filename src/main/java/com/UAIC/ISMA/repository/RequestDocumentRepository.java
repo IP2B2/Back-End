@@ -8,5 +8,4 @@ import java.util.List;
 
 @Repository
 public interface RequestDocumentRepository extends JpaRepository<RequestDocument, Long> {
-    List<RequestDocument> findByUserId(Long userId);
 }
