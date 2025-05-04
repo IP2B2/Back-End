@@ -17,6 +17,8 @@ public class Role implements Serializable {
     @Column(nullable = false)
     private RoleName roleName;
 
+    private String name;
+
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<User> users;
 
@@ -51,4 +53,11 @@ public class Role implements Serializable {
         this.users = users;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }
