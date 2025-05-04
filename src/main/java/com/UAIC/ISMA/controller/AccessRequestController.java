@@ -4,6 +4,8 @@ import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.service.AccessRequestService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
+import java.util.Map;
 
 import java.util.List;
 
@@ -36,6 +38,13 @@ public class AccessRequestController {
     public ResponseEntity<AccessRequestDTO> updateAccessRequest(@PathVariable Long id, @RequestBody AccessRequestDTO dto) {
         return ResponseEntity.ok(accessRequestService.update(id, dto));
     }
+    @PatchMapping("/{id}")
+    public ResponseEntity<AccessRequestDTO> updatePartialAccessRequest(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates) {
+        return ResponseEntity.ok(accessRequestService.updatePartial(id, updates));
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccessRequest(@PathVariable Long id) {

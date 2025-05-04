@@ -10,6 +10,11 @@ import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.EquipmentRepository;
 import com.UAIC.ISMA.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import java.util.Map;
+import java.time.LocalDateTime;
+import com.UAIC.ISMA.dao.enums.RequestStatus;
+import com.UAIC.ISMA.dao.enums.RequestType;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -74,6 +79,32 @@ public class AccessRequestService {
 
         return AccessRequestMapper.toDTO(accessRequestRepository.save(existing));
     }
+
+    public AccessRequestDTO updatePartial(Long id, Map<String, Object> updates) {
+        AccessRequest existing = accessRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + id));
+
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "status":
+                    existing.setStatus(RequestStatus.valueOf(value.toString()));
+                    break;
+                case "requestType":
+                    existing.setRequestType(RequestType.valueOf(value.toString()));
+                    break;
+                case "proposalFile":
+                    existing.setProposalFile(value.toString());
+                    break;
+                case "expectedReturnDate":
+                    existing.setExpectedReturnDate(LocalDateTime.parse(value.toString()));
+                    break;
+            }
+        });
+
+        return AccessRequestMapper.toDTO(accessRequestRepository.save(existing));
+    }
+
+
 
     public void delete(Long id) {
         accessRequestRepository.deleteById(id);
