@@ -7,6 +7,7 @@ import com.UAIC.ISMA.dto.RegisterRequest;
 import com.UAIC.ISMA.dto.RegisterResponse;
 import com.UAIC.ISMA.repository.RoleRepository;
 import com.UAIC.ISMA.repository.UserRepository;
+import com.UAIC.ISMA.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,9 @@ public class RegisterController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> registerUser(@RequestBody RegisterRequest request) {
@@ -51,6 +55,12 @@ public class RegisterController {
         user.setRole(roleAdmin);
 
         userRepository.save(user);
+
+        //TRIMITERE EMAIL CONFIRMARE
+        String subject = "Registration Confirmation";
+        String text = "Hello " + user.getUsername() + ",\n\nYour account has been successfully created!";
+        System.out.println(user.getEmail());
+        emailService.sendEmail(user.getEmail(), subject, text);
 
         return ResponseEntity.ok(new RegisterResponse("User registered successfully with ADMIN role!"));
     }
