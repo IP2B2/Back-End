@@ -7,6 +7,7 @@ public class VirtualAccessDTO {
     private String username;
     private String password;
     private LocalDateTime issuedDate;
+    private Long accessRequestId;
 
     public VirtualAccessDTO() {
     }
@@ -48,5 +49,13 @@ public class VirtualAccessDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Long getAccessRequestId() {
+        return accessRequestId;
+    }
+
+    public void setAccessRequestId(Long accessRequestId) {
+        this.accessRequestId = accessRequestId;
     }
 }

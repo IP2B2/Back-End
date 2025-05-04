@@ -48,17 +48,29 @@ public class VirtualAccessService {
         if (dto.getPassword() == null || dto.getPassword().isEmpty()) {
             throw new InvalidInputException("Password cannot be empty");
         }
-        if (dto.getIssuedDate() == null) {
-            dto.setIssuedDate(LocalDateTime.now());
+        if (virtualAccessRepository.existsByAccessRequest_Id(dto.getAccessRequestId())) {
+            throw new InvalidInputException("This access request already has virtual access credentials assigned.");
         }
-        VirtualAccess virtualAccess = convertToEntity(dto);
-        VirtualAccess saved = virtualAccessRepository.save(virtualAccess);
+
+        AccessRequest accessRequest = accessRequestRepository.findById(dto.getAccessRequestId())
+                .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found"));
+
+        VirtualAccess entity = new VirtualAccess(dto.getUsername(), dto.getPassword(), accessRequest);
+        entity.setIssuedDate(dto.getIssuedDate() != null ? dto.getIssuedDate() : LocalDateTime.now());
+
+        VirtualAccess saved = virtualAccessRepository.save(entity);
         return convertToDTO(saved);
     }
+
 
     public void deleteById(Long id) {
         VirtualAccess virtualAccess = virtualAccessRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("VirtualAccess not found with id " + id));
+
+        AccessRequest accessRequest = virtualAccess.getAccessRequest();
+        if (accessRequest != null) {
+            accessRequest.setVirtualAccess(null);
+        }
         virtualAccessRepository.delete(virtualAccess);
     }
 
@@ -67,36 +79,41 @@ public class VirtualAccessService {
         if (dto.getIssuedDate() == null) {
             dto.setIssuedDate(LocalDateTime.now());
         }
+
         return virtualAccessRepository.findById(id)
                 .map(existing -> {
                     existing.setUsername(dto.getUsername());
                     existing.setPassword(dto.getPassword());
                     existing.setIssuedDate(dto.getIssuedDate());
-                    AccessRequest accessRequest = accessRequestRepository.findById(dto.getId())
-                            .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + dto.getId()));
-                    existing.setAccessRequest(accessRequest);
+
+                    if (dto.getAccessRequestId() != null) {
+                        Optional<VirtualAccess> conflict = virtualAccessRepository
+                                .findByAccessRequest_Id(dto.getAccessRequestId());
+
+                        if (conflict.isPresent() && !conflict.get().getId().equals(id)) {
+                            throw new InvalidInputException("Another virtual access already uses this access request.");
+                        }
+
+                        AccessRequest accessRequest = accessRequestRepository.findById(dto.getAccessRequestId())
+                                .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + dto.getAccessRequestId()));
+                        existing.setAccessRequest(accessRequest);
+                    }
+
                     VirtualAccess updated = virtualAccessRepository.save(existing);
                     return convertToDTO(updated);
                 })
                 .orElseThrow(() -> new EntityNotFoundException("VirtualAccess not found with id " + id));
     }
 
+
     private VirtualAccessDTO convertToDTO(VirtualAccess virtualAccess) {
-        return new VirtualAccessDTO(
-                virtualAccess.getAccessRequest().getId(),
-                virtualAccess.getUsername(),
-                virtualAccess.getPassword(),
-                virtualAccess.getIssuedDate()
-        );
+        VirtualAccessDTO dto = new VirtualAccessDTO();
+        dto.setId(virtualAccess.getId());
+        dto.setUsername(virtualAccess.getUsername());
+        dto.setPassword(virtualAccess.getPassword());
+        dto.setIssuedDate(virtualAccess.getIssuedDate());
+        dto.setAccessRequestId(virtualAccess.getAccessRequest().getId());
+        return dto;
     }
 
-    private VirtualAccess convertToEntity(VirtualAccessDTO dto) {
-        AccessRequest accessRequest = accessRequestRepository.findById(dto.getId())
-                .orElseThrow(() -> new EntityNotFoundException("AccessRequest not found with id " + dto.getId()));
-        return new VirtualAccess(
-                dto.getUsername(),
-                dto.getPassword(),
-                accessRequest
-        );
-    }
 }
