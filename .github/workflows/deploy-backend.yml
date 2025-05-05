@@ -42,6 +42,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/DevOps/
-            chmod +x start.sh && ./start.sh
             docker-compose pull backend
             docker-compose up -d backend
