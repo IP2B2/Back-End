@@ -37,9 +37,17 @@ public class LaboratoryService {
     }
 
     public LaboratoryDTO updateLaboratory(Long id, LaboratoryDTO laboratoryDTO) {
+        Laboratory existing = laboratoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Laboratory not found with id: " + id));
+
         Laboratory laboratory = convertToEntity(laboratoryDTO);
         laboratory.setId(id);
-        return convertToDTO(laboratoryRepository.save(laboratory));
+
+        laboratory.setEquipments(existing.getEquipments());
+        laboratory.setLabDocuments(existing.getLabDocuments());
+
+        Laboratory saved = laboratoryRepository.save(laboratory);
+        return convertToDTO(saved);
     }
 
     public void deleteLaboratory(Long id) {
