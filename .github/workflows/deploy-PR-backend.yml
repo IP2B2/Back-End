@@ -2,8 +2,7 @@ name: Deploy PR Backend
 
 on:
   pull_request:
-    branches: [master]
-    types: [labeled, synchronize, reopened]
+    types: [labeled]
 
 concurrency:
   group: pr-queue
@@ -11,7 +10,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: contains(github.event.pull_request.labels.*.name, 'ready-to-run')
+    if: github.event.label.name == 'ready-to-run' 
     runs-on: ubuntu-latest
 
     steps:

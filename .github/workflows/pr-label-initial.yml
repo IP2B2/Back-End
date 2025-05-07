@@ -1,0 +1,73 @@
+name: PR Queue Labeler
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+  actions: write
+
+jobs:
+  update-pr-queue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const baseBranch = context.payload.pull_request.base.ref;
+
+            const { data: openPRs } = await github.rest.pulls.list({
+              owner: repo.owner,
+              repo: repo.repo,
+              state: 'open',
+              base: baseBranch,
+              sort: 'created',
+              direction: 'asc'
+            });
+
+            let first = true;
+            for (const pr of openPRs) {
+              const prLabels = pr.labels.map(l => l.name);
+
+              // Remove 'needs-work' if present (on reopen/update)
+              if (prLabels.includes('needs-work')) {
+                await github.rest.issues.removeLabel({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: pr.number,
+                  name: 'needs-work'
+                }).catch(() => {});
+              }
+
+              const updated = await github.rest.issues.get({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: pr.number
+              });
+
+              const currentLabels = updated.data.labels.map(l => l.name);
+              if (currentLabels.includes('needs-work')) continue;
+
+              for (const label of ['ready-to-run', 'queued']) {
+                await github.rest.issues.removeLabel({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: pr.number,
+                  name: label
+                }).catch(() => {});
+              }
+
+              const newLabel = first ? 'ready-to-run' : 'queued';
+              await github.rest.issues.addLabels({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: pr.number,
+                labels: [newLabel]
+              });
+
+              first = false;
+            }
+
