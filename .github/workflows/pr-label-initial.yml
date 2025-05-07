@@ -1,0 +1,68 @@
+name: PR Queue Labeler
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  update-pr-queue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const baseBranch = context.payload.pull_request.base.ref;
+
+            const { data: openPRs } = await github.rest.pulls.list({
+              owner: repo.owner,
+              repo: repo.repo,
+              state: 'open',
+              base: baseBranch,
+              sort: 'created',
+              direction: 'asc'
+            });
+
+            let first = true;
+            for (const pr of openPRs) {
+              const prNumber = pr.number;
+
+              // Check latest reviews for CHANGES_REQUESTED
+              const { data: reviews } = await github.rest.pulls.listReviews({
+                owner: repo.owner,
+                repo: repo.repo,
+                pull_number: prNumber
+              });
+
+              const latestReviews = new Map();
+              for (const review of reviews) {
+                latestReviews.set(review.user.login, review.state);
+              }
+
+              const hasChangesRequested = Array.from(latestReviews.values()).includes('CHANGES_REQUESTED');
+              if (hasChangesRequested) continue;
+
+              // Remove all queue-related labels first
+              for (const label of ['ready-to-run', 'queued', 'needs-work']) {
+                await github.rest.issues.removeLabel({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: prNumber,
+                  name: label
+                }).catch(() => {});
+              }
+
+              const newLabel = first ? 'ready-to-run' : 'queued';
+              await github.rest.issues.addLabels({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: prNumber,
+                labels: [newLabel]
+              });
+
+              first = false;
+            }
