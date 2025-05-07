@@ -44,14 +44,16 @@ public class EquipmentService {
     }
 
     public EquipmentDTO updateEquipment(EquipmentDTO equipmentDTO, Long id) {
-        if (!equipmentRepository.existsById(id)) {
-            throw new EntityNotFoundException("Equipment not found with id: " + id);
-        }
+        Equipment existing = equipmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Equipment not found with id: " + id));
 
         Equipment equipment = convertToEntity(equipmentDTO);
         equipment.setId(id);
-        Equipment updated = equipmentRepository.save(equipment);
-        return convertToDTO(updated);
+
+        equipment.setAccessRequests(existing.getAccessRequests());
+
+        Equipment saved = equipmentRepository.save(equipment);
+        return convertToDTO(saved);
     }
 
     public void deleteEquipment(Long id) {
@@ -100,6 +102,12 @@ public class EquipmentService {
         dto.setInventoryNumber(equipment.getInventoryNumber());
         dto.setAcquisitionDate(equipment.getAcquisitionDate());
         dto.setAvailabilityStatus(equipment.getAvailabilityStatus());
+        dto.setAccessRequirements(equipment.getAccessRequirements());
+
+        if(equipment.getLaboratory() != null) {
+            dto.setLaboratoryId(equipment.getLaboratory().getId());
+        }
+
         return dto;
     }
 
@@ -110,10 +118,13 @@ public class EquipmentService {
         e.setInventoryNumber(dto.getInventoryNumber());
         e.setAcquisitionDate(dto.getAcquisitionDate());
         e.setAvailabilityStatus(dto.getAvailabilityStatus());
+        e.setAccessRequirements(dto.getAccessRequirements());
+
 
         if(dto.getLaboratoryId() != null) {
             Laboratory lab = laboratoryRepository.findById(dto.getLaboratoryId())
                     .orElseThrow(() -> new EntityNotFoundException("Laboratory not found with id: " + dto.getLaboratoryId()));
+            e.setLaboratory(lab);
         }
 
         return e;
