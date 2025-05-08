@@ -7,6 +7,7 @@ on:
 permissions:
   pull-requests: write
   issues: write
+  actions: write
 
 jobs:
   label-merged:
@@ -19,6 +20,25 @@ jobs:
             const pr = context.payload.pull_request;
             const repo = context.repo;
 
+            const { data: existingLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: repo.owner,
+              repo: repo.repo,
+              issue_number: pr.number
+            });
+
+            const currentLabels = existingLabels.map(label => label.name);
+
+            // Remove 'ready-to-run' if it's present
+            if (currentLabels.includes('ready-to-run')) {
+              await github.rest.issues.removeLabel({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: pr.number,
+                name: 'ready-to-run'
+              }).catch(() => {});
+            }
+
+            // Add 'merged' label
             await github.rest.issues.addLabels({
               owner: repo.owner,
               repo: repo.repo,
