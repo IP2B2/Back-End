@@ -8,18 +8,17 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "notifications")
 public class Notification implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String message;
-
     private LocalDateTime createdDate;
-
     private Boolean readStatus;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     public Notification() {
@@ -32,7 +31,6 @@ public class Notification implements Serializable {
         this.message = message;
         this.user = user;
     }
-
 
     public Long getId() {
         return id;

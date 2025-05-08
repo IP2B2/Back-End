@@ -20,28 +20,29 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final UserDetailsImplService userDetailsService;
 
-    public SecurityConfig(JwtFilter jwtFilter, UserDetailsImplService personDetailsService) {
+    public SecurityConfig(JwtFilter jwtFilter, UserDetailsImplService userDetailsService) {
         this.jwtFilter = jwtFilter;
-        this.userDetailsService = personDetailsService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
+        http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/virtual-access/**").permitAll()
                         .requestMatchers("/request-approvals/**").permitAll()
-                        //.requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("STUDENT", "COORDONATOR")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean

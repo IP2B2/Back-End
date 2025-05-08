@@ -12,6 +12,13 @@ public class NotificationDTO {
     public NotificationDTO() {
     }
 
+    public NotificationDTO(Long id, String message, LocalDateTime createdDate, Boolean readStatus) {
+        this.id = id;
+        this.message = message;
+        this.createdDate = createdDate;
+        this.readStatus = readStatus;
+    }
+
     public NotificationDTO(Long id, String message, LocalDateTime createdDate, Boolean readStatus, Long userId) {
         this.id = id;
         this.message = message;
