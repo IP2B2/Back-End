@@ -3,6 +3,12 @@ name: Deploy PR Backend
 on:
   pull_request:
     types: [labeled]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch name to deploy'
+        required: true
+        type: string
 
 concurrency:
   group: pr-queue
@@ -10,14 +16,14 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event.label.name == 'ready-to-run' 
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.event.pull_request.head.ref }}
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:

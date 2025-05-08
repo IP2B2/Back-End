@@ -1,75 +1,58 @@
-name: PR Needs Work Labeler
+name: PR Review/Conflict Labeler
 
 on:
+  pull_request:
+    types: [reopened, opened, synchronize]
   pull_request_review:
     types: [submitted]
 
 permissions:
   pull-requests: write
   issues: write
+  actions: write
 
 jobs:
-  mark-needs-work:
-    if: github.event.review.state == 'CHANGES_REQUESTED'
+  label-pr-status:
+    if: github.event.review.state == 'CHANGES_REQUESTED' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7
         with:
           script: |
-            const { pull_request } = context.payload;
-            const prNumber = pull_request.number;
+            const pr = context.payload.pull_request;
             const repo = context.repo;
 
-            // Label current PR as needs-work
-            await github.rest.issues.addLabels({
-              owner: repo.owner,
-              repo: repo.repo,
-              issue_number: prNumber,
-              labels: ['needs-work']
-            });
-
-            // Remove 'ready-to-run' and 'queued' if present
-            for (const label of ['ready-to-run', 'queued']) {
+            const labelsToRemove = ['ready-to-run', 'merged', 'has-conflicts', 'needs-work'];
+            for (const label of labelsToRemove) {
               await github.rest.issues.removeLabel({
                 owner: repo.owner,
                 repo: repo.repo,
-                issue_number: prNumber,
+                issue_number: pr.number,
                 name: label
               }).catch(() => {});
             }
 
-            // Get all open PRs in order
-            const { data: openPRs } = await github.rest.pulls.list({
-              owner: repo.owner,
-              repo: repo.repo,
-              state: 'open',
-              base: pull_request.base.ref,
-              sort: 'created',
-              direction: 'asc'
-            });
-
-            // Find next PR without 'needs-work' or 'ready-to-run'
-            const nextPR = openPRs.find(pr => {
-              const labels = pr.labels.map(l => l.name);
-              return pr.number !== prNumber &&
-                     !labels.includes('needs-work') &&
-                     !labels.includes('ready-to-run');
-            });
-
-            // Promote next PR directly to 'ready-to-run' and remove 'queued' if needed
-            if (nextPR) {
-              // Remove 'queued' just in case it's still there
-              await github.rest.issues.removeLabel({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: nextPR.number,
-                name: 'queued'
-              }).catch(() => {});
-
+            if (context.eventName === 'pull_request_review' && context.payload.review.state === 'CHANGES_REQUESTED') {
               await github.rest.issues.addLabels({
                 owner: repo.owner,
                 repo: repo.repo,
-                issue_number: nextPR.number,
-                labels: ['ready-to-run']
+                issue_number: pr.number,
+                labels: ['needs-work']
+              });
+              return;
+            }
+
+            const { data: mergeablePR } = await github.rest.pulls.get({
+              owner: repo.owner,
+              repo: repo.repo,
+              pull_number: pr.number
+            });
+
+            if (mergeablePR.mergeable === false) {
+              await github.rest.issues.addLabels({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: pr.number,
+                labels: ['has-conflicts']
               });
             }

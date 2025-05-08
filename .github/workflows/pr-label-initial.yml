@@ -1,68 +1,51 @@
-name: PR Queue Labeler
+name: Auto Label Ready-to-Run PRs
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
+    types: [opened, reopened, labeled, unlabeled, synchronize]
 
 permissions:
   pull-requests: write
   issues: write
+  actions: write
 
 jobs:
-  update-pr-queue:
+  label-ready:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7
         with:
           script: |
+            const { pull_request } = context.payload;
+            const prNumber = pull_request.number;
             const repo = context.repo;
-            const baseBranch = context.payload.pull_request.base.ref;
 
-            const { data: openPRs } = await github.rest.pulls.list({
+            // Skip if PR has conflicts
+            if (pull_request.mergeable_state === 'dirty') {
+              console.log('PR has merge conflicts — skipping label');
+              return;
+            }
+
+            // Check if review has requested changes
+            const reviews = await github.rest.pulls.listReviews({
               owner: repo.owner,
               repo: repo.repo,
-              state: 'open',
-              base: baseBranch,
-              sort: 'created',
-              direction: 'asc'
+              pull_number: prNumber,
             });
 
-            let first = true;
-            for (const pr of openPRs) {
-              const prNumber = pr.number;
+            const hasChangesRequested = reviews.data.some(r => r.state === 'CHANGES_REQUESTED');
 
-              // Check latest reviews for CHANGES_REQUESTED
-              const { data: reviews } = await github.rest.pulls.listReviews({
-                owner: repo.owner,
-                repo: repo.repo,
-                pull_number: prNumber
-              });
-
-              const latestReviews = new Map();
-              for (const review of reviews) {
-                latestReviews.set(review.user.login, review.state);
-              }
-
-              const hasChangesRequested = Array.from(latestReviews.values()).includes('CHANGES_REQUESTED');
-              if (hasChangesRequested) continue;
-
-              // Remove all queue-related labels first
-              for (const label of ['ready-to-run', 'queued', 'needs-work']) {
-                await github.rest.issues.removeLabel({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: prNumber,
-                  name: label
-                }).catch(() => {});
-              }
-
-              const newLabel = first ? 'ready-to-run' : 'queued';
-              await github.rest.issues.addLabels({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: prNumber,
-                labels: [newLabel]
-              });
-
-              first = false;
+            if (hasChangesRequested) {
+              console.log('Changes requested — not labeling ready-to-run');
+              return;
             }
+
+            // Label PR as ready-to-run
+            await github.rest.issues.addLabels({
+              owner: repo.owner,
+              repo: repo.repo,
+              issue_number: prNumber,
+              labels: ['ready-to-run']
+            });
+
+            console.log('Labeled PR as ready-to-run');
