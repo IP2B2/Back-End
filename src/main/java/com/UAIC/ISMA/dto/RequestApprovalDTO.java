@@ -22,6 +22,13 @@ public class RequestApprovalDTO {
         this.approverId = approverId;
     }
 
+    public RequestApprovalDTO(Long id, String approvalStatus, LocalDateTime approvalDate, String comments) {
+        this.id = id;
+        this.approvalStatus = approvalStatus;
+        this.approvalDate = approvalDate;
+        this.comments = comments;
+    }
+
     public Long getId() {
         return id;
     }
