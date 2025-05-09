@@ -25,73 +25,7 @@ jobs:
             const repo = context.repo;
 
             const currentLabels = pull_request.labels.map(l => l.name);
-
-
-            // Fetch latest reviews
-            const { data: reviews } = await github.rest.pulls.listReviews({
-              owner: repo.owner,
-              repo: repo.repo,
-              pull_number: prNumber,
-            });
-
-            const latestReviewByUser = new Map();
-            for (const review of reviews) {
-              if (!['APPROVED', 'CHANGES_REQUESTED', 'COMMENTED'].includes(review.state)) continue;
-              latestReviewByUser.set(review.user.login, review.state);
-            }
-
-            const hasChangesRequested = Array.from(latestReviewByUser.values()).includes('CHANGES_REQUESTED');
-
-            // Handle CHANGES_REQUESTED
-            if (hasChangesRequested) {
-              console.log('Changes requested — labeling needs-work and removing ready-to-run if exists');
-              await github.rest.issues.addLabels({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: prNumber,
-                labels: ['needs-work']
-              });
-
-              if (currentLabels.includes('ready-to-run')) {
-                await github.rest.issues.removeLabel({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: prNumber,
-                  name: 'ready-to-run'
-                }).catch(() => {});
-              }
-
-              return;
-            }
-
-            // Skip if PR has merge conflicts
-            if (pull_request.mergeable_state === 'dirty') {
-              console.log('PR has merge conflicts — skipping ready-to-run');
-              return;
-            }
-
-            // Clean up "needs-work" if it's no longer needed
-            if (currentLabels.includes('needs-work')) {
-              console.log('Removing needs-work label (resolved)');
-              await github.rest.issues.removeLabel({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: prNumber,
-                name: 'needs-work'
-              }).catch(() => {});
-            }
-
-            // Add ready-to-run
-            if (!currentLabels.includes('ready-to-run')) {
-              console.log('Labeling ready-to-run');
-              await github.rest.issues.addLabels({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: prNumber,
-                labels: ['ready-to-run']
-              });
-            } else {
-              console.log('PR already labeled ready-to-run');
+            
             try {
               // Fetch latest reviews
               const { data: reviews } = await github.rest.pulls.listReviews({
@@ -108,6 +42,7 @@ jobs:
 
               const hasChangesRequested = Array.from(latestReviewByUser.values()).includes('CHANGES_REQUESTED');
 
+              // Handle CHANGES_REQUESTED
               if (hasChangesRequested) {
                 console.log('Changes requested — labeling needs-work and removing ready-to-run if exists');
                 await github.rest.issues.addLabels({
@@ -129,11 +64,13 @@ jobs:
                 return;
               }
 
+              // Skip if PR has merge conflicts
               if (pull_request.mergeable_state === 'dirty') {
                 console.log('PR has merge conflicts — skipping ready-to-run');
                 return;
               }
 
+              // Clean up "needs-work" if it's no longer needed
               if (currentLabels.includes('needs-work')) {
                 console.log('Removing needs-work label (resolved)');
                 await github.rest.issues.removeLabel({
@@ -144,6 +81,7 @@ jobs:
                 }).catch(() => {});
               }
 
+              // Add ready-to-run
               if (!currentLabels.includes('ready-to-run')) {
                 console.log('Labeling ready-to-run');
                 await github.rest.issues.addLabels({
