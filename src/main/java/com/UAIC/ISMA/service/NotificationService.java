@@ -1,12 +1,16 @@
 package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.dao.Notification;
+import com.UAIC.ISMA.dto.NotificationDTO;
+import com.UAIC.ISMA.exception.NotificationNotFoundException;
+import com.UAIC.ISMA.mapper.NotificationMapper;
 import com.UAIC.ISMA.repository.NotificationRepository;
+import com.UAIC.ISMA.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
@@ -14,75 +18,44 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 
     @Autowired
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository,
+                               UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
     }
 
-    public List<Notification> getAllNotifications() {
-        try {
-            return notificationRepository.findAll();
-        } catch (Exception ex) {
-            throw new RuntimeException("Error fetching notifications", ex);
-        }
+    public List<NotificationDTO> findAll(Long userId) {
+        return notificationRepository.findAll()
+                .stream()
+                .map(NotificationMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Notification getNotificationById(Long id) {
-        try {
-            return notificationRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id " + id));
-        } catch (ResourceNotFoundException rnfe) {
-            throw rnfe;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error fetching notification with id " + id, ex);
-        }
+    public NotificationDTO findById(Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
+        return NotificationMapper.toDTO(notification);
     }
 
-    public Notification createNotification(Notification notification) {
-        try {
-            validateNotification(notification);
-            return notificationRepository.save(notification);
-        } catch (IllegalArgumentException iae) {
-            throw iae;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error creating notification", ex);
-        }
+    public NotificationDTO create(NotificationDTO dto) {
+        Notification entity = NotificationMapper.toEntity(dto);
+        Notification savedNotification = notificationRepository.save(entity);
+        return NotificationMapper.toDTO(savedNotification);
     }
 
-    public Notification updateNotification(Long id, Notification notificationDetails) {
-        try {
-            validateNotification(notificationDetails);
-            Notification existing = notificationRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id " + id));
-            existing.setReadStatus(notificationDetails.getReadStatus());
-            existing.setMessage(notificationDetails.getMessage());
-            existing.setReadStatus(notificationDetails.getReadStatus());
-            existing.setUser(notificationDetails.getUser());
-            return notificationRepository.save(existing);
-        } catch (ResourceNotFoundException | IllegalArgumentException e) {
-            throw e;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error updating notification with id " + id, ex);
-        }
+    public NotificationDTO update(Long id, NotificationDTO dto) {
+        Notification existing = notificationRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
+
+        existing.setMessage(dto.getMessage());
+        existing.setReadStatus(dto.getReadStatus());
+
+        Notification updatedNotification = notificationRepository.save(existing);
+        return NotificationMapper.toDTO(updatedNotification);
     }
 
-    public void deleteNotification(Long id) {
-        try {
-            Notification existing = notificationRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id " + id));
-            notificationRepository.delete(existing);
-        } catch (ResourceNotFoundException rnfe) {
-            throw rnfe;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error deleting notification with id " + id, ex);
-        }
-    }
-
-    private void validateNotification(Notification notification) {
-        if (notification.getReadStatus() == null || notification.getReadStatus()) {
-            throw new IllegalArgumentException("Notification title must not be null or empty");
-        }
-        if (notification.getMessage() == null || notification.getMessage().trim().isEmpty()) {
-            throw new IllegalArgumentException("Notification message must not be null or empty");
-        }
+    public void delete(Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
+        notificationRepository.delete(notification);
     }
 }

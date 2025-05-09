@@ -13,8 +13,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    ;
+    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
@@ -29,7 +28,10 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     private Boolean isTokenExpired(String token) {
@@ -50,5 +52,8 @@ public class JwtUtil {
         final String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
-}
 
+    public SecretKey getSecretKey() {
+        return SECRET_KEY;
+    }
+}
