@@ -22,26 +22,36 @@ jobs:
             const pr = context.payload.pull_request;
             const repo = context.repo;
 
-            const labelsToRemove = ['ready-to-run', 'merged', 'has-conflicts', 'needs-work'];
-            for (const label of labelsToRemove) {
-              await github.rest.issues.removeLabel({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: pr.number,
-                name: label
-              }).catch(() => {});
-            }
+            const { data: existingLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: repo.owner,
+              repo: repo.repo,
+              issue_number: pr.number
+            });
+            const currentLabels = existingLabels.map(l => l.name);
 
+            // Handle CHANGES_REQUESTED
             if (context.eventName === 'pull_request_review' && context.payload.review.state === 'CHANGES_REQUESTED') {
-              await github.rest.issues.addLabels({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: pr.number,
-                labels: ['needs-work']
-              });
+              if (!currentLabels.includes('needs-work')) {
+                await github.rest.issues.addLabels({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: pr.number,
+                  labels: ['needs-work']
+                });
+              }
+              // Remove ready-to-run if present
+              if (currentLabels.includes('ready-to-run')) {
+                await github.rest.issues.removeLabel({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: pr.number,
+                  name: 'ready-to-run'
+                }).catch(() => {});
+              }
               return;
             }
 
+            // Check if PR has conflicts
             const { data: mergeablePR } = await github.rest.pulls.get({
               owner: repo.owner,
               repo: repo.repo,
@@ -49,10 +59,33 @@ jobs:
             });
 
             if (mergeablePR.mergeable === false) {
-              await github.rest.issues.addLabels({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: pr.number,
-                labels: ['has-conflicts']
-              });
+              if (!currentLabels.includes('has-conflicts')) {
+                await github.rest.issues.addLabels({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: pr.number,
+                  labels: ['has-conflicts']
+                });
+              }
+              if (currentLabels.includes('ready-to-run')) {
+                await github.rest.issues.removeLabel({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: pr.number,
+                  name: 'ready-to-run'
+                }).catch(() => {});
+              }
+              return;
+            }
+
+            // If everything is clean and "needs-work"/"has-conflicts" exist, remove them
+            for (const label of ['needs-work', 'has-conflicts']) {
+              if (currentLabels.includes(label)) {
+                await github.rest.issues.removeLabel({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: pr.number,
+                  name: label
+                }).catch(() => {});
+              }
             }
