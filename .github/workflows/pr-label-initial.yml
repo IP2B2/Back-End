@@ -92,7 +92,6 @@ jobs:
               });
             } else {
               console.log('PR already labeled ready-to-run');
-=======
             try {
               // Fetch latest reviews
               const { data: reviews } = await github.rest.pulls.listReviews({
@@ -159,5 +158,4 @@ jobs:
             } catch (error) {
               console.error('Error in workflow execution:', error.message);
               throw error;
-
             }
