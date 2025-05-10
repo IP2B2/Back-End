@@ -17,29 +17,31 @@ public class AuditLogMapper {
     }
 
     public AuditLog toEntity(AuditLogDTO dto) {
-        AuditLog entity = new AuditLog();
-        entity.setId(dto.getId());
-        entity.setAction(dto.getAction());
-        entity.setDetails(dto.getDetails());
-        entity.setTimestamp(dto.getTimestamp());
-
-        if (dto.getUserId() != null) {
-            User user = userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + dto.getUserId()));
-            entity.setUser(user);
+        if (dto == null) {
+            return null;
         }
 
-        return entity;
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + dto.getUserId()));
+
+        return new AuditLog(dto.getAction(), dto.getDetails(), user);
     }
 
     public AuditLogDTO toDto(AuditLog entity) {
+        if (entity == null) {
+            return null;
+        }
+
         AuditLogDTO dto = new AuditLogDTO();
         dto.setId(entity.getId());
         dto.setAction(entity.getAction());
         dto.setDetails(entity.getDetails());
         dto.setTimestamp(entity.getTimestamp());
-        dto.setUserId(entity.getUser().getId());
+
+        if (entity.getUser() != null) {
+            dto.setUserId(entity.getUser().getId());
+        }
+
         return dto;
     }
 }
-
