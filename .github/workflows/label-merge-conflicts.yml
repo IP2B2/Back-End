@@ -1,0 +1,24 @@
+name: PR Conflict Labeler
+
+on:
+  push:                           
+  pull_request_target:             
+    types: [synchronize]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-conflicts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PRs with conflicts
+        uses: eps1lon/actions-label-merge-conflict@v3.0.3
+        with:
+          dirtyLabel: "has-conflicts"                                   
+          removeOnDirtyLabel: "ready-to-run"                  
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          commentOnDirty: "⚠️ This pull request has merge conflicts. Please rebase or resolve them before we can proceed."
+          commentOnClean: "✅ Merge conflicts have been resolved. Thanks!"
+
