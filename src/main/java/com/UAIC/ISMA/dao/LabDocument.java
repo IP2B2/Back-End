@@ -21,7 +21,7 @@ public class LabDocument implements Serializable {
     private LocalDateTime updatedAt;
 
     @ManyToOne
-    @JoinColumn(name = "lab_id", nullable = false)
+    @JoinColumn(name = "lab_id")
     private Laboratory laboratory;
 
     public LabDocument() {
