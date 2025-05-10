@@ -1,83 +1,70 @@
 package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.dao.RequestDocument;
+import com.UAIC.ISMA.dto.RequestDocumentDTO;
+import com.UAIC.ISMA.exception.RequestDocumentNotFoundException;
+import com.UAIC.ISMA.mapper.RequestDocumentMapper;
+import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.RequestDocumentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import com.UAIC.ISMA.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RequestDocumentService {
 
-    private final RequestDocumentRepository repo;
+    private final RequestDocumentRepository requestDocumentRepository;
+    private final AccessRequestRepository accessRequestRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    public RequestDocumentService(RequestDocumentRepository repo) {
-        this.repo = repo;
+    public RequestDocumentService(RequestDocumentRepository requestDocumentRepository,
+                                  AccessRequestRepository accessRequestRepository,
+                                  UserRepository userRepository) {
+        this.requestDocumentRepository = requestDocumentRepository;
+        this.accessRequestRepository = accessRequestRepository;
+        this.userRepository = userRepository;
     }
 
-    public List<RequestDocument> getAll() {
-        try {
-            return repo.findAll();
-        } catch (Exception ex) {
-            throw new RuntimeException("Error fetching all request documents", ex);
-        }
+    public List<RequestDocumentDTO> findAll(Long userId, Long accessRequestId) {
+        return requestDocumentRepository.findAll()
+                .stream()
+                .map(RequestDocumentMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public RequestDocument getById(Long id) {
-        try {
-            return repo.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("RequestDocument not found with id " + id));
-        } catch (ResourceNotFoundException rnfe) {
-            throw rnfe;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error fetching request document with id " + id, ex);
-        }
+    public RequestDocumentDTO findById(Long id) {
+        RequestDocument document = requestDocumentRepository.findById(id)
+                .orElseThrow(() -> new RequestDocumentNotFoundException(id));
+        return RequestDocumentMapper.toDTO(document);
     }
 
-    public RequestDocument create(RequestDocument doc) {
-        try {
-            validateDocument(doc);
-            return repo.save(doc);
-        } catch (IllegalArgumentException iae) {
-            throw iae;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error creating request document", ex);
-        }
+    public RequestDocumentDTO create(RequestDocumentDTO dto) {
+        RequestDocument entity = RequestDocumentMapper.toEntity(dto);
+
+
+        RequestDocument saved = requestDocumentRepository.save(entity);
+        return RequestDocumentMapper.toDTO(saved);
     }
 
-    public RequestDocument update(Long id, RequestDocument details) {
-        try {
-            validateDocument(details);
-            RequestDocument existing = repo.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("RequestDocument not found with id " + id));
-            existing.setFilePath(details.getFilePath());
-            existing.setDescription(details.getDescription());
-            return repo.save(existing);
-        } catch (ResourceNotFoundException | IllegalArgumentException e) {
-            throw e;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error updating request document with id " + id, ex);
-        }
+    public RequestDocumentDTO update(Long id, RequestDocumentDTO dto) {
+        RequestDocument existing = requestDocumentRepository.findById(id)
+                .orElseThrow(() -> new RequestDocumentNotFoundException(id));
+
+        existing.setTitle(dto.getTitle());
+        existing.setDescription(dto.getDescription());
+        existing.setFilePath(dto.getFilePath());
+
+
+
+        RequestDocument updated = requestDocumentRepository.save(existing);
+        return RequestDocumentMapper.toDTO(updated);
     }
 
     public void delete(Long id) {
-        try {
-            RequestDocument existing = repo.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("RequestDocument not found with id " + id));
-            repo.delete(existing);
-        } catch (ResourceNotFoundException rnfe) {
-            throw rnfe;
-        } catch (Exception ex) {
-            throw new RuntimeException("Error deleting request document with id " + id, ex);
-        }
-    }
-
-    private void validateDocument(RequestDocument doc) {
-        if (doc.getTitle() == null || doc.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Document name must not be null or empty");
-        }
+        RequestDocument entity = requestDocumentRepository.findById(id)
+                .orElseThrow(() -> new RequestDocumentNotFoundException(id));
+        requestDocumentRepository.delete(entity);
     }
 }

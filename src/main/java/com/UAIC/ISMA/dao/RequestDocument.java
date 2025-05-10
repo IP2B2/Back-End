@@ -22,7 +22,7 @@ public class RequestDocument implements Serializable {
     private LocalDateTime uploadedAt;
 
     @ManyToOne
-    @JoinColumn(name = "request_id", nullable = false)
+    @JoinColumn(name = "request_id")
     private AccessRequest accessRequest;
 
     @ManyToOne

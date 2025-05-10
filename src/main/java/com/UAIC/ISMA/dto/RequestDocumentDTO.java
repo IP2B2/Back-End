@@ -24,6 +24,14 @@ public class RequestDocumentDTO {
         this.uploadedById = uploadedById;
     }
 
+    public RequestDocumentDTO(Long id, String title, String description, String filePath, LocalDateTime uploadedAt) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.filePath = filePath;
+        this.uploadedAt = uploadedAt;
+    }
+
     public Long getId() {
         return id;
     }
