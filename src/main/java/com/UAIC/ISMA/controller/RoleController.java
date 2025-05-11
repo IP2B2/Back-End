@@ -2,47 +2,52 @@ package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dao.Role;
 import com.UAIC.ISMA.service.RoleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("api/roles")
+@RequestMapping("/roles")
 public class RoleController {
 
     private final RoleService roleService;
 
-    @Autowired
     public RoleController(RoleService roleService) {
         this.roleService = roleService;
     }
 
     @GetMapping
-    public List<Role> getAllRoles() {
-        return roleService.getAllRoles();
+    public ResponseEntity<List<Role>> getAllRoles() {
+        return ResponseEntity.ok(roleService.getAllRoles());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Role> getRoleById(@PathVariable Long id) {
-        Role role = roleService.getRoleById(id);
-        return ResponseEntity.ok(role);
+        return ResponseEntity.ok(roleService.getRoleById(id));
     }
 
     @PostMapping
-    public Role createRole(@RequestBody Role role) {
-        return roleService.createRole(role);
+    public ResponseEntity<Role> createRole(@RequestBody Role role) {
+        Role createdRole = roleService.createRole(role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdRole);
     }
 
     @PutMapping("/{id}")
-    public Role updateRole(@PathVariable Long id, @RequestBody Role roleDetails) {
-        return roleService.updateRole(id, roleDetails);
+    public ResponseEntity<Role> updateRole(@PathVariable Long id, @RequestBody Role roleDetails) {
+        Role updatedRole = roleService.updateRole(id, roleDetails);
+        return ResponseEntity.ok(updatedRole);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRole(@PathVariable Long id) {
         roleService.deleteRole(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }

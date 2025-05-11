@@ -3,8 +3,8 @@ package com.UAIC.ISMA.service;
 import com.UAIC.ISMA.dao.Role;
 import com.UAIC.ISMA.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -32,14 +32,14 @@ public class RoleService {
     }
 
     public Role updateRole(Long id, Role roleDetails) {
-        Role existing = roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found with id " + id));
+        Role existing = getRoleById(id);
+        existing.setName(roleDetails.getName());
+        existing.setRoleName(roleDetails.getRoleName());
         return roleRepository.save(existing);
     }
 
     public void deleteRole(Long id) {
-        Role existing = roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found with id " + id));
+        Role existing = getRoleById(id);
         roleRepository.delete(existing);
     }
 }
