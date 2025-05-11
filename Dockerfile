@@ -1,13 +1,14 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre-alpine
 
-# Set working directory inside the container
+# Use non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Create app directory with proper permissions
 WORKDIR /app
+COPY --chown=appuser:appgroup target/ISMA-0.0.1-SNAPSHOT.jar /app/backend.jar
 
-# Copy the built jar file into the container
-COPY target/ISMA-0.0.1-SNAPSHOT.jar /app/backend.jar
-
-# Expose the port the Spring Boot app is running on
+# Drop privileges
+USER appuser
 EXPOSE 8080
 
-# Start the Spring Boot application
-CMD ["java", "-jar", "backend.jar"]
+CMD ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75", "-jar", "backend.jar"]

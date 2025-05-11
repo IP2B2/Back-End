@@ -1,0 +1,20 @@
+# Maven/Gradle build folders
+build/
+
+# Local environment files
+*.env
+*.local
+*.properties
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+*.log
+
+# Docker-related
+Dockerfile
+docker-compose.yml
+
