@@ -25,7 +25,7 @@ jobs:
             const repo = context.repo;
 
             const currentLabels = pull_request.labels.map(l => l.name);
-
+            
             try {
               // Fetch latest reviews
               const { data: reviews } = await github.rest.pulls.listReviews({
