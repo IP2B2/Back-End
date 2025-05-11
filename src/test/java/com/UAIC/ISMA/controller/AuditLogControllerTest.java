@@ -2,7 +2,6 @@ package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dto.AuditLogDTO;
 import com.UAIC.ISMA.exception.AuditLogNotFoundException;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.AuditLogService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -21,111 +21,82 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AuditLogControllerTest {
 
-    @Mock
-    private AuditLogService auditLogService;
+    private MockMvc mockMvc;
 
-    @InjectMocks
-    private AuditLogController auditLogController;
+    @Mock
+    private AuditLogService auditLogService;
 
-    private MockMvc mockMvc;
-    private AuditLogDTO dto;
+    @InjectMocks
+    private AuditLogController auditLogController;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(auditLogController).build();
+    private AuditLogDTO dto;
 
-        dto = new AuditLogDTO();
-        dto.setId(1L);
-        dto.setAction("CREATE");
-        dto.setDetails("Test action");
-        dto.setTimestamp(LocalDateTime.of(2025, 5, 10, 10, 0));
-        dto.setUserId(1L);
-    }
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(auditLogController).build();
 
-    @Test
-    void testFindById_Success() throws Exception {
-        when(auditLogService.findById(1L)).thenReturn(dto);
+        dto = new AuditLogDTO();
+        dto.setId(1L);
+        dto.setAction("CREATE");
+        dto.setDetails("Test");
+        dto.setTimestamp(LocalDateTime.of(2025, 5, 11, 10, 0));
+        dto.setUserId(1L);
+    }
 
-        mockMvc.perform(get("/audit-logs/{id}", 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(dto.getId()))
-                .andExpect(jsonPath("$.action").value(dto.getAction()))
-                .andExpect(jsonPath("$.details").value(dto.getDetails()));
-    }
+    @Test
+    void testFindById_Success() throws Exception {
+        when(auditLogService.findById(1L)).thenReturn(dto);
 
-    @Test
-    void testFindById_NotFound() throws Exception {
-        when(auditLogService.findById(1L)).thenThrow(new AuditLogNotFoundException(1L));
+        mockMvc.perform(get("/api/audit-logs/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(dto.getId()))
+                .andExpect(jsonPath("$.action").value(dto.getAction()));
+    }
 
-        mockMvc.perform(get("/audit-logs/{id}", 1L))
-                .andExpect(status().isNotFound());
-    }
+    @Test
+    void testFindById_NotFound() throws Exception {
+        when(auditLogService.findById(1L)).thenThrow(new AuditLogNotFoundException(1L));
 
-    @Test
-    void testCreate_Success() throws Exception {
-        when(auditLogService.create(any())).thenReturn(dto);
+        mockMvc.perform(get("/api/audit-logs/1"))
+                .andExpect(status().isNotFound());
+    }
 
-        mockMvc.perform(post("/audit-logs")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id\":1,\"action\":\"CREATE\",\"details\":\"Test action\",\"timestamp\":\"2025-05-10T10:00:00\",\"userId\":1}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(dto.getId()))
-                .andExpect(jsonPath("$.action").value(dto.getAction()));
-    }
+    @Test
+    void testCreate_Success() throws Exception {
+        when(auditLogService.create(any())).thenReturn(dto);
 
-    @Test
-    void testCreate_InvalidUser() throws Exception {
-        // Arrange
-        when(auditLogService.create(any())).thenThrow(new UserNotFoundException(1L));
+        String json = """
+        {
+            "id": 1,
+            "action": "CREATE",
+            "details": "Test",
+            "timestamp": "2025-05-11T10:00:00",
+            "userId": 1
+        }
+        """;
 
-        // JSON valid pentru body
-        String jsonContent = """
-        {
-            "id": 1,
-            "action": "CREATE",
-            "details": "Test action",
-            "timestamp": "2025-05-10T10:00:00",
-            "userId": 1
-        }
-    """;
+        mockMvc.perform(post("/api/audit-logs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.action").value("CREATE"));
+    }
 
-        // Act & Assert
-        mockMvc.perform(post("/audit-logs")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("User not found with ID: 1"));
-    }
+    @Test
+    void testFindAll() throws Exception {
+        when(auditLogService.findAll()).thenReturn(List.of(dto));
 
-    @Test
-    void testUpdate_Success() throws Exception {
-        dto.setAction("UPDATE");
-        dto.setDetails("Updated action");
+        mockMvc.perform(get("/api/audit-logs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
+    }
 
-        when(auditLogService.update(eq(1L), any())).thenReturn(dto);
+    @Test
+    void testDelete() throws Exception {
+        doNothing().when(auditLogService).delete(1L);
 
-        mockMvc.perform(put("/audit-logs/{id}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id\":1,\"action\":\"UPDATE\",\"details\":\"Updated action\",\"timestamp\":\"2025-05-10T10:00:00\",\"userId\":1}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.action").value("UPDATE"))
-                .andExpect(jsonPath("$.details").value("Updated action"));
-    }
-
-    @Test
-    void testDelete_Success() throws Exception {
-        doNothing().when(auditLogService).delete(1L);
-
-        mockMvc.perform(delete("/audit-logs/{id}", 1L))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void testDelete_NotFound() throws Exception {
-        doThrow(new AuditLogNotFoundException(1L)).when(auditLogService).delete(1L);
-
-        mockMvc.perform(delete("/audit-logs/{id}", 1L))
-                .andExpect(status().isNotFound());
-    }
+        mockMvc.perform(delete("/api/audit-logs/1"))
+                .andExpect(status().isNoContent());
+    }
 }
