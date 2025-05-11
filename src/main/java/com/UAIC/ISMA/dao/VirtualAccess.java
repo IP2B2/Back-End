@@ -21,7 +21,7 @@ public class VirtualAccess implements Serializable {
     private LocalDateTime issuedDate;
 
     @OneToOne
-    @JoinColumn(name = "request_id", nullable = false)
+    @JoinColumn(name = "request_id")
     private AccessRequest accessRequest;
 
     public VirtualAccess() {

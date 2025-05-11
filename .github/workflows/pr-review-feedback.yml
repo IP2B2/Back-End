@@ -1,19 +1,18 @@
-name: PR Review/Conflict Labeler
+name: PR Review Labeler
 
 on:
-  pull_request:
-    types: [reopened, opened, synchronize]
   pull_request_review:
     types: [submitted]
+  pull_request:
+    types: [synchronize, reopened, opened, labeled, unlabeled]
 
 permissions:
   pull-requests: write
   issues: write
-  actions: write
+  contents: read
 
 jobs:
-  label-pr-status:
-    if: github.event.review.state == 'CHANGES_REQUESTED' || github.event_name == 'pull_request'
+  label-review:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7
@@ -29,8 +28,25 @@ jobs:
             });
             const currentLabels = existingLabels.map(l => l.name);
 
-            // Handle CHANGES_REQUESTED
-            if (context.eventName === 'pull_request_review' && context.payload.review.state === 'CHANGES_REQUESTED') {
+            // Fetch all reviews and only consider latest per user
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: repo.owner,
+              repo: repo.repo,
+              pull_number: pr.number
+            });
+
+            const latestByUser = new Map();
+            for (const review of reviews) {
+              latestByUser.set(review.user.login, review);
+            }
+
+            const hasChangesRequested = [...latestByUser.values()].some(
+              review => review.state === 'CHANGES_REQUESTED'
+            );
+
+            const hasConflicts = currentLabels.includes('has-conflicts');
+
+            if (hasChangesRequested && !hasConflicts) {
               if (!currentLabels.includes('needs-work')) {
                 await github.rest.issues.addLabels({
                   owner: repo.owner,
@@ -39,7 +55,6 @@ jobs:
                   labels: ['needs-work']
                 });
               }
-              // Remove ready-to-run if present
               if (currentLabels.includes('ready-to-run')) {
                 await github.rest.issues.removeLabel({
                   owner: repo.owner,
@@ -48,44 +63,11 @@ jobs:
                   name: 'ready-to-run'
                 }).catch(() => {});
               }
-              return;
-            }
-
-            // Check if PR has conflicts
-            const { data: mergeablePR } = await github.rest.pulls.get({
-              owner: repo.owner,
-              repo: repo.repo,
-              pull_number: pr.number
-            });
-
-            if (mergeablePR.mergeable === false) {
-              if (!currentLabels.includes('has-conflicts')) {
-                await github.rest.issues.addLabels({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: pr.number,
-                  labels: ['has-conflicts']
-                });
-              }
-              if (currentLabels.includes('ready-to-run')) {
-                await github.rest.issues.removeLabel({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: pr.number,
-                  name: 'ready-to-run'
-                }).catch(() => {});
-              }
-              return;
-            }
-
-            // If everything is clean and "needs-work"/"has-conflicts" exist, remove them
-            for (const label of ['needs-work', 'has-conflicts']) {
-              if (currentLabels.includes(label)) {
-                await github.rest.issues.removeLabel({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: pr.number,
-                  name: label
-                }).catch(() => {});
-              }
+            } else if (!hasChangesRequested && currentLabels.includes('needs-work')) {
+              await github.rest.issues.removeLabel({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: pr.number,
+                name: 'needs-work'
+              }).catch(() => {});
             }

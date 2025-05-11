@@ -1,46 +1,76 @@
 package com.UAIC.ISMA.service;
+
 import com.UAIC.ISMA.dao.AuditLog;
+import com.UAIC.ISMA.dao.User;
+import com.UAIC.ISMA.dto.AuditLogDTO;
+import com.UAIC.ISMA.exception.AuditLogNotFoundException;
+import com.UAIC.ISMA.exception.EntityNotFoundException;
+import com.UAIC.ISMA.mapper.AuditLogMapper;
 import com.UAIC.ISMA.repository.AuditLogRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.UAIC.ISMA.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
+    private final UserRepository userRepository;
+    private final AuditLogMapper auditLogMapper;
 
-    public AuditLogService(AuditLogRepository auditLogRepository) {
+    @Autowired
+    public AuditLogService(AuditLogRepository auditLogRepository,
+                           UserRepository userRepository,
+                           AuditLogMapper auditLogMapper) {
         this.auditLogRepository = auditLogRepository;
+        this.userRepository = userRepository;
+        this.auditLogMapper = auditLogMapper;
     }
 
-    public AuditLog create(AuditLog auditLog) {
-        return auditLogRepository.save(auditLog);
+    public List<AuditLogDTO> findAll() {
+        return auditLogRepository.findAll()
+                .stream()
+                .map(auditLogMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    public AuditLog read(Long id) {
-        return auditLogRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("AuditLog not found with id " + id));
+    public AuditLogDTO findById(Long id) {
+        AuditLog auditLog = auditLogRepository.findById(id)
+                .orElseThrow(() -> new AuditLogNotFoundException(id));
+        return auditLogMapper.toDto(auditLog);
     }
 
-    public List<AuditLog> readAll() {
-        return auditLogRepository.findAll();
+    public AuditLogDTO create(AuditLogDTO dto) {
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + dto.getUserId()));
+
+        AuditLog entity = auditLogMapper.toEntity(dto, user);
+        AuditLog saved = auditLogRepository.save(entity);
+        return auditLogMapper.toDto(saved);
     }
 
-    public AuditLog update(Long id, AuditLog updatedAuditLog) {
-        AuditLog existing = read(id);
-        existing.setAction(updatedAuditLog.getAction());
-        existing.setDetails(updatedAuditLog.getDetails());
-        existing.setTimestamp(updatedAuditLog.getTimestamp());
-        existing.setUser(updatedAuditLog.getUser());
-        return auditLogRepository.save(existing);
+    public AuditLogDTO update(Long id, AuditLogDTO dto) {
+        AuditLog existing = auditLogRepository.findById(id)
+                .orElseThrow(() -> new AuditLogNotFoundException(id));
+
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + dto.getUserId()));
+
+        existing.setAction(dto.getAction());
+        existing.setDetails(dto.getDetails());
+        existing.setTimestamp(dto.getTimestamp());
+        existing.setUser(user);
+
+        AuditLog updated = auditLogRepository.save(existing);
+        return auditLogMapper.toDto(updated);
     }
 
     public void delete(Long id) {
-        if (!auditLogRepository.existsById(id)) {
-            throw new EntityNotFoundException("AuditLog not found with id " + id);
-        }
-        auditLogRepository.deleteById(id);
+        AuditLog auditLog = auditLogRepository.findById(id)
+                .orElseThrow(() -> new AuditLogNotFoundException(id));
+        auditLogRepository.delete(auditLog);
     }
 }
