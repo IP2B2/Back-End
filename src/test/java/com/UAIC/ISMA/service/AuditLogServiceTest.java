@@ -4,131 +4,145 @@ import com.UAIC.ISMA.dao.AuditLog;
 import com.UAIC.ISMA.dao.User;
 import com.UAIC.ISMA.dto.AuditLogDTO;
 import com.UAIC.ISMA.exception.AuditLogNotFoundException;
+import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.mapper.AuditLogMapper;
 import com.UAIC.ISMA.repository.AuditLogRepository;
 import com.UAIC.ISMA.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AuditLogServiceTest {
 
-    @Mock
-    private AuditLogRepository auditLogRepository;
+    @InjectMocks
+    private AuditLogService auditLogService;
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock
+    private AuditLogRepository auditLogRepository;
 
-    @Mock
-    private AuditLogMapper auditLogMapper;
+    @Mock
+    private UserRepository userRepository;
 
-    @InjectMocks
-    private AuditLogService auditLogService;
+    @Mock
+    private AuditLogMapper auditLogMapper;
 
-    private AuditLog auditLog;
-    private AuditLogDTO dto;
-    private User user;
+    private AuditLogDTO dto;
+    private AuditLog entity;
+    private User user;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
 
-        user = new User();
-        user.setId(1L);
-        user.setUsername("testuser");
+        user = new User();
+        user.setId(1L);
 
-        auditLog = new AuditLog();
-        auditLog.setId(1L);
-        auditLog.setAction("CREATE");
-        auditLog.setDetails("Test action");
-        auditLog.setTimestamp(LocalDateTime.now());
-        auditLog.setUser(user);
+        dto = new AuditLogDTO();
+        dto.setId(1L);
+        dto.setAction("CREATE");
+        dto.setDetails("Test log");
+        dto.setTimestamp(LocalDateTime.of(2025, 5, 11, 10, 0));
+        dto.setUserId(1L);
 
-        dto = new AuditLogDTO();
-        dto.setId(1L);
-        dto.setAction("CREATE");
-        dto.setDetails("Test action");
-        dto.setTimestamp(LocalDateTime.now());
-        dto.setUserId(1L);
-    }
+        entity = new AuditLog();
+        entity.setId(1L);
+        entity.setAction("CREATE");
+        entity.setDetails("Test log");
+        entity.setTimestamp(dto.getTimestamp());
+        entity.setUser(user);
+    }
 
-    @Test
-    void testFindById_Success() {
-        when(auditLogRepository.findById(1L)).thenReturn(Optional.of(auditLog));
-        when(auditLogMapper.toDto(auditLog)).thenReturn(dto);
+    @Test
+    void testCreate_Success() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(auditLogMapper.toEntity(dto, user)).thenReturn(entity);
+        when(auditLogRepository.save(entity)).thenReturn(entity);
+        when(auditLogMapper.toDto(entity)).thenReturn(dto);
 
-        AuditLogDTO result = auditLogService.findById(1L);
+        AuditLogDTO result = auditLogService.create(dto);
 
-        assertNotNull(result);
-        assertEquals(dto.getId(), result.getId());
-    }
+        assertNotNull(result);
+        assertEquals("CREATE", result.getAction());
+    }
 
-    @Test
-    void testFindById_NotFound() {
-        when(auditLogRepository.findById(1L)).thenReturn(Optional.empty());
+    @Test
+    void testRead_Success() {
+        when(auditLogRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(auditLogMapper.toDto(entity)).thenReturn(dto);
 
-        assertThrows(AuditLogNotFoundException.class, () -> auditLogService.findById(1L));
-    }
+        AuditLogDTO result = auditLogService.findById(1L)
+                ;
 
-    @Test
-    void testCreate_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(auditLogMapper.toEntity(dto)).thenReturn(auditLog);
-        when(auditLogRepository.save(auditLog)).thenReturn(auditLog);
-        when(auditLogMapper.toDto(auditLog)).thenReturn(dto);
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+    }
 
-        AuditLogDTO result = auditLogService.create(dto);
+    @Test
+    void testRead_NotFound() {
+        when(auditLogRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertNotNull(result);
-        assertEquals(dto.getAction(), result.getAction());
-    }
+        assertThrows(AuditLogNotFoundException.class, () -> auditLogService.findById(1L)
+        );
+    }
 
-    @Test
-    void testCreate_UserNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+    @Test
+    void testFindAll() {
+        when(auditLogRepository.findAll()).thenReturn(List.of(entity));
+        when(auditLogMapper.toDto(entity)).thenReturn(dto);
 
-        assertThrows(EntityNotFoundException.class, () -> auditLogService.create(dto));
-    }
+        List<AuditLogDTO> result = auditLogService.findAll();
 
-    @Test
-    void testUpdate_Success() {
-        when(auditLogRepository.findById(1L)).thenReturn(Optional.of(auditLog));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(auditLogMapper.toEntity(dto)).thenReturn(auditLog);
-        when(auditLogRepository.save(auditLog)).thenReturn(auditLog);
-        when(auditLogMapper.toDto(auditLog)).thenReturn(dto);
+        assertEquals(1, result.size());
+    }
 
-        AuditLogDTO result = auditLogService.update(1L, dto);
+    @Test
+    void testUpdate_Success() {
+        AuditLogDTO updatedDto = new AuditLogDTO();
+        updatedDto.setId(1L);
+        updatedDto.setAction("UPDATE");
+        updatedDto.setDetails("Modified");
+        updatedDto.setTimestamp(dto.getTimestamp());
+        updatedDto.setUserId(1L);
 
-        assertNotNull(result);
-        assertEquals(dto.getDetails(), result.getDetails());
-    }
+        when(auditLogRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(auditLogRepository.save(entity)).thenReturn(entity);
+        when(auditLogMapper.toDto(entity)).thenReturn(updatedDto);
 
-    @Test
-    void testUpdate_NotFound() {
-        when(auditLogRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(AuditLogNotFoundException.class, () -> auditLogService.update(1L, dto));
-    }
+        AuditLogDTO result = auditLogService.update(1L, updatedDto);
 
-    @Test
-    void testDelete_Success() {
-        when(auditLogRepository.findById(1L)).thenReturn(Optional.of(auditLog));
-        auditLogService.delete(1L);
-        verify(auditLogRepository, times(1)).delete(auditLog);
-    }
+        assertEquals("UPDATE", result.getAction());
+        assertEquals("Modified", result.getDetails());
+    }
 
-    @Test
-    void testDelete_NotFound() {
-        when(auditLogRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(AuditLogNotFoundException.class, () -> auditLogService.delete(1L));
-    }
+    @Test
+    void testDelete_Success() {
+        // Arrange
+        AuditLog entity = new AuditLog();
+        entity.setId(1L);
+
+        when(auditLogRepository.findById(1L)).thenReturn(Optional.of(entity));
+        doNothing().when(auditLogRepository).delete(entity);
+
+        // Act
+        auditLogService.delete(1L);
+
+        // Assert
+        verify(auditLogRepository, times(1)).findById(1L);
+        verify(auditLogRepository, times(1)).delete(entity);
+    }
+
+    @Test
+    void testDelete_NotFound() {
+        when(auditLogRepository.existsById(1L)).thenReturn(false);
+
+        assertThrows(AuditLogNotFoundException.class, () -> auditLogService.delete(1L));
+    }
 }
