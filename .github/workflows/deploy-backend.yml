@@ -3,7 +3,7 @@ name: Deploy Backend
 on:
   push:
     branches:
-      - master  # Trigger the action on push / merged branch ticket to the 'master' branch
+      - master # Trigger the action on push / merged branch ticket to the 'master' branch
 
 jobs:
   build-and-deploy:
@@ -13,17 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      
       - name: Delete the application.properties file
-        run: rm ./src/main/resources/application.properties  
-
-      - name: Build the jar file
-        run: chmod +x ./mvnw && ./mvnw clean package -DskipTests
+        run: rm -f ./src/main/resources/application.properties
 
       - name: Build backend Docker image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:latest .
@@ -42,6 +33,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd ~/DevOps/
+            cd ~/DevOps
             docker-compose pull backend
             docker-compose up -d backend
