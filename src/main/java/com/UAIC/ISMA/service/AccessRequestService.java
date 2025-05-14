@@ -18,6 +18,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.UAIC.ISMA.dao.enums.RequestStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import java.time.LocalDate;
 
 @Service
 public class AccessRequestService {
@@ -36,6 +41,7 @@ public class AccessRequestService {
         this.userRepository = userRepository;
         this.equipmentRepository = equipmentRepository;
     }
+
 
     public List<AccessRequestDTO> findAll() {
         return accessRequestRepository.findAll()
@@ -105,4 +111,14 @@ public class AccessRequestService {
                 .orElseThrow(() -> new AccessRequestNotFoundException(id));
         accessRequestRepository.delete(existing);
     }
+
+    public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<AccessRequest> pageResult = accessRequestRepository.findByUserWithFilters(userId, status, date, pageable);
+
+        return pageResult.getContent().stream()
+                .map(AccessRequestMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
 }

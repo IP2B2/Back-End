@@ -3,6 +3,7 @@ package com.UAIC.ISMA.controller;
 import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
 import com.UAIC.ISMA.exception.UserNotFoundException;
+import com.UAIC.ISMA.repository.UserRepository;
 import com.UAIC.ISMA.service.AccessRequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,6 +15,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import com.UAIC.ISMA.dao.enums.RequestStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/access-requests")
@@ -21,10 +27,17 @@ import java.util.Map;
 public class AccessRequestController {
 
     private final AccessRequestService accessRequestService;
+    private final UserRepository userRepository;
 
-    public AccessRequestController(AccessRequestService accessRequestService) {
+    public AccessRequestController(AccessRequestService accessRequestService, UserRepository userRepository) {
         this.accessRequestService = accessRequestService;
+        this.userRepository = userRepository;
     }
+
+
+    /*public AccessRequestController(AccessRequestService accessRequestService) {
+        this.accessRequestService = accessRequestService;
+    }*/
 
     @Operation(
             summary = "Get all access requests",
@@ -109,4 +122,21 @@ public class AccessRequestController {
     public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<AccessRequestDTO>> getMyAccessRequests(
+            @AuthenticationPrincipal UserDetails currentUser,
+            @RequestParam(required = false) RequestStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Long userId = userRepository.findByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException(0L))
+                .getId();
+
+        List<AccessRequestDTO> results = accessRequestService.findByUserWithFilters(userId, status, date, page, size);
+        return ResponseEntity.ok(results);
+    }
+
 }

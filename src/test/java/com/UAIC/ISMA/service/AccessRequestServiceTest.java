@@ -24,6 +24,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.UAIC.ISMA.dao.enums.RequestStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import java.time.LocalDate;
+
 class AccessRequestServiceTest {
 
     @Mock
@@ -147,4 +153,25 @@ class AccessRequestServiceTest {
 
         assertNotNull(result);
     }
+
+    @Test
+    void testFindByUserWithFilters_Success() {
+        Long userId = 1L;
+        RequestStatus status = RequestStatus.APPROVED;
+        LocalDate date = LocalDate.of(2025, 5, 14);
+        int page = 0;
+        int size = 10;
+
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<AccessRequest> mockPage = new PageImpl<>(List.of(accessRequest));
+
+        when(accessRequestRepository.findByUserWithFilters(userId, status, date, pageable))
+                .thenReturn(mockPage);
+
+        List<AccessRequestDTO> result = accessRequestService.findByUserWithFilters(userId, status, date, page, size);
+
+        assertEquals(1, result.size());
+        assertEquals(accessRequest.getId(), result.get(0).getId());
+    }
+
 }
