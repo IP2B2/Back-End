@@ -46,7 +46,9 @@ public class RegisterController {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-
+        Role defaultRole = roleRepository.findByRoleName(RoleName.STUDENT)
+                .orElseThrow(() -> new RuntimeException("Default role USER not found"));
+        user.setRole(defaultRole);
 
         userRepository.save(user);
 
