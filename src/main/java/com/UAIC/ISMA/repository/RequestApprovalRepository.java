@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.repository;
 
-import com.UAIC.ISMA.dao.RequestApproval;
+import com.UAIC.ISMA.entity.RequestApproval;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.Equipment;
-import com.UAIC.ISMA.dao.Laboratory;
+import com.UAIC.ISMA.entity.Equipment;
+import com.UAIC.ISMA.entity.Laboratory;
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.repository.LaboratoryRepository;

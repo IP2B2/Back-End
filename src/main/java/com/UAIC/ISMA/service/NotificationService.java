@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.Notification;
+import com.UAIC.ISMA.entity.Notification;
 import com.UAIC.ISMA.dto.NotificationDTO;
 import com.UAIC.ISMA.exception.NotificationNotFoundException;
 import com.UAIC.ISMA.mapper.NotificationMapper;

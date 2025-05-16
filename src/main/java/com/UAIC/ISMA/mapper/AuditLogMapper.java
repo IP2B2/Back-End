@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.AuditLog;
-import com.UAIC.ISMA.dao.User;
+import com.UAIC.ISMA.entity.AuditLog;
+import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.dto.AuditLogDTO;
 import org.springframework.stereotype.Component;
 
