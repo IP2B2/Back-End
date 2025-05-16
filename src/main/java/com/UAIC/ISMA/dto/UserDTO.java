@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.dto;
 
-import com.UAIC.ISMA.dao.enums.RoleName;
+import com.UAIC.ISMA.entity.enums.RoleName;
 
 public class UserDTO {
     private Long id;
