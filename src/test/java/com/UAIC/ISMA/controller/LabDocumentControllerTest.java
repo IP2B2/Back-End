@@ -1,16 +1,12 @@
 package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.controller.LabDocumentController;
-import com.UAIC.ISMA.controller.LaboratoryController;
-import com.UAIC.ISMA.dao.LabDocument;
-import com.UAIC.ISMA.dao.Laboratory;
+import com.UAIC.ISMA.entity.LabDocument;
+import com.UAIC.ISMA.entity.Laboratory;
 import com.UAIC.ISMA.dto.LabDocumentDTO;
-import com.UAIC.ISMA.dto.NotificationDTO;
-import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.exception.LabDocumentNotFoundException;
 import com.UAIC.ISMA.exception.NotificationNotFoundException;
 import com.UAIC.ISMA.repository.LabDocumentRepository;
-import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

@@ -1,8 +1,8 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.Equipment;
-import com.UAIC.ISMA.dao.Laboratory;
-import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
+import com.UAIC.ISMA.entity.Equipment;
+import com.UAIC.ISMA.entity.Laboratory;
+import com.UAIC.ISMA.entity.enums.AvailabilityStatus;
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
 import com.UAIC.ISMA.repository.EquipmentRepository;
@@ -13,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 

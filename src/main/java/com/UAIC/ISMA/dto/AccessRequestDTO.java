@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.dto;
 
-import com.UAIC.ISMA.dao.enums.RequestStatus;
-import com.UAIC.ISMA.dao.enums.RequestType;
+import com.UAIC.ISMA.entity.enums.RequestStatus;
+import com.UAIC.ISMA.entity.enums.RequestType;
 
 import java.time.LocalDateTime;
 

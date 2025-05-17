@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.AccessRequest;
+import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.dto.AccessRequestDTO;
 
 public class AccessRequestMapper {

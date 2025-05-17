@@ -1,8 +1,8 @@
-package com.UAIC.ISMA.dao;
+package com.UAIC.ISMA.entity;
 
 
-import com.UAIC.ISMA.dao.enums.RequestStatus;
-import com.UAIC.ISMA.dao.enums.RequestType;
+import com.UAIC.ISMA.entity.enums.RequestStatus;
+import com.UAIC.ISMA.entity.enums.RequestType;
 import jakarta.persistence.*;
 
 import java.io.Serializable;

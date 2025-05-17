@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.Notification;
+import com.UAIC.ISMA.entity.Notification;
 import com.UAIC.ISMA.dto.NotificationDTO;
 
 public class NotificationMapper {
@@ -10,7 +10,8 @@ public class NotificationMapper {
                 entity.getId(),
                 entity.getMessage(),
                 entity.getCreatedDate(),
-                entity.getReadStatus()
+                entity.getReadStatus(),
+                entity.getUser().getId()
         );
     }
 

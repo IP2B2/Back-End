@@ -1,7 +1,7 @@
-package com.UAIC.ISMA.dao;
+package com.UAIC.ISMA.entity;
 
 
-import com.UAIC.ISMA.dao.enums.ApprovalStatus;
+import com.UAIC.ISMA.entity.enums.ApprovalStatus;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -23,11 +23,11 @@ public class RequestApproval implements Serializable {
     private String comments;
 
     @ManyToOne
-    @JoinColumn(name = "request_id", nullable = false)
+    @JoinColumn(name = "request_id")
     private AccessRequest accessRequest;
 
     @ManyToOne
-    @JoinColumn(name = "approver_id", nullable = false)
+    @JoinColumn(name = "approver_id")
     private User approver;
 
     public RequestApproval() {
@@ -41,7 +41,6 @@ public class RequestApproval implements Serializable {
         this.approver = approver;
         this.comments = comments;
     }
-
 
     public Long getId() {
         return id;

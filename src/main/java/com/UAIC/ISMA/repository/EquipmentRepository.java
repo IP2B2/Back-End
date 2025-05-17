@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.repository;
 
-import com.UAIC.ISMA.dao.Equipment;
+import com.UAIC.ISMA.entity.Equipment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
