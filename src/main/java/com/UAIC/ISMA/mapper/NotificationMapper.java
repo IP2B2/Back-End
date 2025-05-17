@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.Notification;
+import com.UAIC.ISMA.entity.Notification;
 import com.UAIC.ISMA.dto.NotificationDTO;
 
 public class NotificationMapper {

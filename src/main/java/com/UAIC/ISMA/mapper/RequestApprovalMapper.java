@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.RequestApproval;
-import com.UAIC.ISMA.dao.enums.ApprovalStatus;
+import com.UAIC.ISMA.entity.RequestApproval;
+import com.UAIC.ISMA.entity.enums.ApprovalStatus;
 import com.UAIC.ISMA.dto.RequestApprovalDTO;
 
 public class RequestApprovalMapper {

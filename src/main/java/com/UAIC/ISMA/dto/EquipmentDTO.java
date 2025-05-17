@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.dto;
 
-import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
+import com.UAIC.ISMA.entity.enums.AvailabilityStatus;
 
 import java.time.LocalDate;
 

@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.repository;
 
-import com.UAIC.ISMA.dao.VirtualAccess;
+import com.UAIC.ISMA.entity.VirtualAccess;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

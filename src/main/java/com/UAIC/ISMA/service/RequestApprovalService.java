@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.RequestApproval;
-import com.UAIC.ISMA.dao.enums.ApprovalStatus;
+import com.UAIC.ISMA.entity.RequestApproval;
+import com.UAIC.ISMA.entity.enums.ApprovalStatus;
 import com.UAIC.ISMA.dto.RequestApprovalDTO;
 import com.UAIC.ISMA.exception.RequestApprovalNotFoundException;
 import com.UAIC.ISMA.mapper.RequestApprovalMapper;

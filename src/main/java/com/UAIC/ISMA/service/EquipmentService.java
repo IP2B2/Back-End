@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.Equipment;
+import com.UAIC.ISMA.entity.Equipment;
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
 import com.UAIC.ISMA.mapper.EquipmentMapper;
