@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.Laboratory;
+import com.UAIC.ISMA.entity.Laboratory;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
 import com.UAIC.ISMA.exception.LaboratoryNotFoundException;
 import com.UAIC.ISMA.mapper.LaboratoryMapper;

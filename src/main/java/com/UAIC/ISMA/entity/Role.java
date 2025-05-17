@@ -1,6 +1,6 @@
-package com.UAIC.ISMA.dao;
+package com.UAIC.ISMA.entity;
 
-import com.UAIC.ISMA.dao.enums.RoleName;
+import com.UAIC.ISMA.entity.enums.RoleName;
 import jakarta.persistence.*;
 
 import java.io.Serializable;

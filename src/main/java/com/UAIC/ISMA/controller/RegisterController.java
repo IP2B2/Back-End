@@ -1,8 +1,6 @@
 package com.UAIC.ISMA.controller;
 
-import com.UAIC.ISMA.dao.Role;
-import com.UAIC.ISMA.dao.User;
-import com.UAIC.ISMA.dao.enums.RoleName;
+import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.dto.RegisterRequest;
 import com.UAIC.ISMA.dto.RegisterResponse;
 import com.UAIC.ISMA.repository.RoleRepository;

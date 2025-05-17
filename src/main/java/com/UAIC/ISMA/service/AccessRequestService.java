@@ -1,8 +1,8 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.AccessRequest;
-import com.UAIC.ISMA.dao.Equipment;
-import com.UAIC.ISMA.dao.User;
+import com.UAIC.ISMA.entity.AccessRequest;
+import com.UAIC.ISMA.entity.Equipment;
+import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
 import com.UAIC.ISMA.exception.UserNotFoundException;
@@ -90,8 +90,8 @@ public class AccessRequestService {
 
         updates.forEach((key, value) -> {
             switch (key) {
-                case "status" -> existing.setStatus(Enum.valueOf(com.UAIC.ISMA.dao.enums.RequestStatus.class, value.toString()));
-                case "requestType" -> existing.setRequestType(Enum.valueOf(com.UAIC.ISMA.dao.enums.RequestType.class, value.toString()));
+                case "status" -> existing.setStatus(Enum.valueOf(com.UAIC.ISMA.entity.enums.RequestStatus.class, value.toString()));
+                case "requestType" -> existing.setRequestType(Enum.valueOf(com.UAIC.ISMA.entity.enums.RequestType.class, value.toString()));
                 case "proposalFile" -> existing.setProposalFile(value.toString());
                 case "expectedReturnDate" -> existing.setExpectedReturnDate(LocalDateTime.parse(value.toString()));
             }

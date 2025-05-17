@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.VirtualAccess;
+import com.UAIC.ISMA.entity.VirtualAccess;
 import com.UAIC.ISMA.dto.VirtualAccessDTO;
 
 public class VirtualAccessMapper {

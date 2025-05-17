@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.Role;
+import com.UAIC.ISMA.entity.Role;
 import com.UAIC.ISMA.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;

@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.AuditLog;
-import com.UAIC.ISMA.dao.User;
+import com.UAIC.ISMA.entity.AuditLog;
+import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.dto.AuditLogDTO;
 import com.UAIC.ISMA.exception.AuditLogNotFoundException;
 import com.UAIC.ISMA.exception.EntityNotFoundException;

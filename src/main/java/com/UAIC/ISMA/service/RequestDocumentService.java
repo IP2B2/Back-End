@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.RequestDocument;
+import com.UAIC.ISMA.entity.RequestDocument;
 import com.UAIC.ISMA.dto.RequestDocumentDTO;
 import com.UAIC.ISMA.exception.RequestDocumentNotFoundException;
 import com.UAIC.ISMA.mapper.RequestDocumentMapper;

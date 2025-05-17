@@ -1,4 +1,4 @@
-package com.UAIC.ISMA.dao.enums;
+package com.UAIC.ISMA.entity.enums;
 
 public enum RoleName {
     ADMIN, COORDONATOR, RESEARCHER, STUDENT

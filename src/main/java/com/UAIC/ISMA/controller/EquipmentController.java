@@ -3,16 +3,22 @@ package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.exception.LaboratoryNotFoundException;
 import com.UAIC.ISMA.service.EquipmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/equipment")
@@ -56,7 +62,7 @@ public class EquipmentController {
     )
     public ResponseEntity<EquipmentDTO> createEquipment(
             @Parameter(description = "Equipment data to create")
-            @RequestBody EquipmentDTO equipmentDTO) {
+            @RequestBody @Valid EquipmentDTO equipmentDTO) {
         EquipmentDTO created = equipmentService.createEquipment(equipmentDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -70,7 +76,7 @@ public class EquipmentController {
             @Parameter(description = "Equipment ID")
             @PathVariable Long id,
             @Parameter(description = "Updated equipment data")
-            @RequestBody EquipmentDTO equipmentDTO) {
+            @RequestBody @Valid EquipmentDTO equipmentDTO) {
         EquipmentDTO updated = equipmentService.updateEquipment(equipmentDTO, id);
         return ResponseEntity.ok(updated);
     }
@@ -87,6 +93,28 @@ public class EquipmentController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/search")
+    @Operation(
+            summary = "Search equipment",
+            description = "Search equipment using optional filters: name (partial match), availability status, and laboratory ID. Supports pagination."
+    )
+    public ResponseEntity<?> searchEquipment(
+            @Parameter(description = "Optional name to search (partial match)")
+            @RequestParam(required = false) String name,
+
+            @Parameter(description = "Optional availability status (e.g., AVAILABLE, IN_USE)")
+            @RequestParam(required = false) String status,
+
+            @Parameter(description = "Optional laboratory ID to filter")
+            @RequestParam(required = false) Long labId,
+
+            @Parameter(description = "Pagination parameters (page, size, sort)")
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(equipmentService.searchEquipment(name, status, labId, pageable));
+    }
+
+
     @ExceptionHandler(EquipmentNotFoundException.class)
     public ResponseEntity<String> handleEquipmentNotFoundException(EquipmentNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
@@ -95,5 +123,19 @@ public class EquipmentController {
     @ExceptionHandler(LaboratoryNotFoundException.class)
     public ResponseEntity<String> handleLaboratoryNotFoundException(LaboratoryNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<String> handleInvalidInput(InvalidInputException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 }

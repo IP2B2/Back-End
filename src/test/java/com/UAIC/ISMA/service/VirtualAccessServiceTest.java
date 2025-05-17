@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.VirtualAccess;
+import com.UAIC.ISMA.entity.VirtualAccess;
 import com.UAIC.ISMA.dto.VirtualAccessDTO;
 import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.exception.VirtualAccessNotFoundException;
