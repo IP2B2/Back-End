@@ -3,15 +3,18 @@ package com.UAIC.ISMA.service;
 import com.UAIC.ISMA.dao.AccessRequest;
 import com.UAIC.ISMA.dao.Equipment;
 import com.UAIC.ISMA.dao.User;
+import com.UAIC.ISMA.dao.enums.RequestStatus;
 import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
+import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.mapper.AccessRequestMapper;
 import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.EquipmentRepository;
 import com.UAIC.ISMA.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -90,7 +93,7 @@ public class AccessRequestService {
 
         updates.forEach((key, value) -> {
             switch (key) {
-                case "status" -> existing.setStatus(Enum.valueOf(com.UAIC.ISMA.dao.enums.RequestStatus.class, value.toString()));
+                case "status" -> existing.setStatus(Enum.valueOf(RequestStatus.class, value.toString()));
                 case "requestType" -> existing.setRequestType(Enum.valueOf(com.UAIC.ISMA.dao.enums.RequestType.class, value.toString()));
                 case "proposalFile" -> existing.setProposalFile(value.toString());
                 case "expectedReturnDate" -> existing.setExpectedReturnDate(LocalDateTime.parse(value.toString()));
@@ -104,5 +107,9 @@ public class AccessRequestService {
         AccessRequest existing = accessRequestRepository.findById(id)
                 .orElseThrow(() -> new AccessRequestNotFoundException(id));
         accessRequestRepository.delete(existing);
+    }
+
+    public Page<AccessRequestDTO> filterRequests(RequestStatus status, String equipmentType, Long userId, Pageable pageable) {
+        return accessRequestRepository.filterAccessRequests(status, equipmentType, userId, pageable);
     }
 }
