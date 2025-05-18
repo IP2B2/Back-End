@@ -1,7 +1,7 @@
 package com.UAIC.ISMA.repository;
 
-import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.AccessRequest;
+import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.enums.RequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
