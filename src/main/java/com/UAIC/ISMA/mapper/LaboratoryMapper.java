@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.Laboratory;
+import com.UAIC.ISMA.entity.Laboratory;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
 
 
