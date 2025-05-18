@@ -1,9 +1,9 @@
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.config.JwtUtil;
-import com.UAIC.ISMA.dao.Role;
-import com.UAIC.ISMA.dao.User;
-import com.UAIC.ISMA.dao.enums.RoleName;
+import com.UAIC.ISMA.entity.Role;
+import com.UAIC.ISMA.entity.User;
+import com.UAIC.ISMA.entity.enums.RoleName;
 import com.UAIC.ISMA.dto.RegistrationRequest;
 import com.UAIC.ISMA.dto.ResetPasswordRequest;
 import com.UAIC.ISMA.exception.DuplicateEmailException;

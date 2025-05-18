@@ -1,8 +1,7 @@
 package com.UAIC.ISMA.repository;
 
-import com.UAIC.ISMA.dao.Role;
-import com.UAIC.ISMA.dao.User;
-import com.UAIC.ISMA.dao.enums.RoleName;
+import com.UAIC.ISMA.entity.Role;
+import com.UAIC.ISMA.entity.enums.RoleName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

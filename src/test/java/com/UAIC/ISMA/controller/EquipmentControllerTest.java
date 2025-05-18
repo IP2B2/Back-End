@@ -1,14 +1,19 @@
 package com.UAIC.ISMA.controller;
 
-import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
+import com.UAIC.ISMA.entity.enums.AvailabilityStatus;
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.service.EquipmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -35,6 +40,7 @@ public class EquipmentControllerTest {
         equipmentDTO.setId(1L);
         equipmentDTO.setName("Oscilloscope");
         equipmentDTO.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        equipmentDTO.setLaboratoryId(10L);
     }
 
     @Test
@@ -129,5 +135,140 @@ public class EquipmentControllerTest {
 
         assertThrows(EquipmentNotFoundException.class, () -> equipmentController.deleteEquipment(1L));
     }
+
+    @Test
+    void testSearchEquipment_AllFilters_Success() {
+        String name = "Oscilloscope";
+        String status = "AVAILABLE";
+        Long labId = 10L;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<EquipmentDTO> page = new PageImpl<>(List.of(equipmentDTO));
+
+        when(equipmentService.searchEquipment(eq(name), eq(status), eq(labId), eq(pageable)))
+                .thenReturn(page);
+
+        ResponseEntity<?> response = equipmentController.searchEquipment(name, status, labId, pageable);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<?> resultPage = (Page<?>) response.getBody();
+        assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
+    }
+
+    @Test
+    void testSearchEquipment_ByNameOnly_Success() {
+        String name = "Oscilloscope";
+        String status = null;
+        Long labId = null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<EquipmentDTO> page = new PageImpl<>(List.of(equipmentDTO));
+
+        when(equipmentService.searchEquipment(eq(name), eq(status), eq(labId), eq(pageable)))
+                .thenReturn(page);
+
+        ResponseEntity<?> response = equipmentController.searchEquipment(name, status, labId, pageable);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<?> resultPage = (Page<?>) response.getBody();
+        assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
+    }
+
+    @Test
+    void testSearchEquipment_ByStatusOnly_Success() {
+        String name = null;
+        String status = "AVAILABLE";
+        Long labId = null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<EquipmentDTO> page = new PageImpl<>(List.of(equipmentDTO));
+
+        when(equipmentService.searchEquipment(eq(name), eq(status), eq(labId), eq(pageable)))
+                .thenReturn(page);
+
+        ResponseEntity<?> response = equipmentController.searchEquipment(name, status, labId, pageable);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<?> resultPage = (Page<?>) response.getBody();
+        assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
+    }
+
+    @Test
+    void testSearchEquipment_ByLabIdOnly_Success() {
+        String name = null;
+        String status = null;
+        Long labId = 10L;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<EquipmentDTO> page = new PageImpl<>(List.of(equipmentDTO));
+
+        when(equipmentService.searchEquipment(eq(name), eq(status), eq(labId), eq(pageable)))
+                .thenReturn(page);
+
+        ResponseEntity<?> response = equipmentController.searchEquipment(name, status, labId, pageable);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<?> resultPage = (Page<?>) response.getBody();
+        assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
+
+    }
+
+    @Test
+    void testSearchEquipment_NoFilters_Success() {
+        String name = null;
+        String status = null;
+        Long labId = null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<EquipmentDTO> page = new PageImpl<>(List.of(equipmentDTO));
+
+        when(equipmentService.searchEquipment(eq(name), eq(status), eq(labId), eq(pageable)))
+                .thenReturn(page);
+
+        ResponseEntity<?> response = equipmentController.searchEquipment(name, status, labId, pageable);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<?> resultPage = (Page<?>) response.getBody();
+        assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
+    }
+
+    @Test
+    void testSearchEquipment_InvalidStatus() {
+        String invalidStatus = "INVALID";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(equipmentService.searchEquipment(null, invalidStatus, null, pageable))
+                .thenThrow(new InvalidInputException("Invalid availability status: " + invalidStatus));
+
+        assertThrows(InvalidInputException.class, () ->
+                equipmentController.searchEquipment(null, invalidStatus, null, pageable));
+    }
+
+
 
 }

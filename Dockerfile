@@ -3,8 +3,10 @@ FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
 
 WORKDIR /build
 
-# Copy only pom.xml first to cache dependencies
+# Copy pom.xml + mvnw + .mvn first to cache dependencies
 COPY pom.xml ./
+COPY mvnw ./ 
+COPY .mvn .mvn
 RUN mvn dependency:go-offline
 
 # Copy the rest of the source

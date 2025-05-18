@@ -1,21 +1,15 @@
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.LabDocument;
-import com.UAIC.ISMA.dao.Notification;
+import com.UAIC.ISMA.entity.LabDocument;
 import com.UAIC.ISMA.dto.LabDocumentDTO;
-import com.UAIC.ISMA.dto.NotificationDTO;
-import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.exception.LabDocumentNotFoundException;
-import com.UAIC.ISMA.exception.NotificationNotFoundException;
 import com.UAIC.ISMA.mapper.LabDocumentsMapper;
-import com.UAIC.ISMA.mapper.NotificationMapper;
 import com.UAIC.ISMA.repository.LabDocumentRepository;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
