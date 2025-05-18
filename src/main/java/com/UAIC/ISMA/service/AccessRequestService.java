@@ -5,6 +5,7 @@ import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.entity.Equipment;
 import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.entity.enums.RequestStatus;
+import com.UAIC.ISMA.entity.enums.RequestType;
 import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
 import com.UAIC.ISMA.exception.UserNotFoundException;
@@ -95,8 +96,8 @@ public class AccessRequestService {
 
         updates.forEach((key, value) -> {
             switch (key) {
-                case "status" -> existing.setStatus(Enum.valueOf(com.UAIC.ISMA.entity.enums.RequestStatus.class, value.toString()));
-                case "requestType" -> existing.setRequestType(Enum.valueOf(com.UAIC.ISMA.entity.enums.RequestType.class, value.toString()));
+                case "status" -> existing.setStatus(Enum.valueOf(RequestStatus.class, value.toString()));
+                case "requestType" -> existing.setRequestType(Enum.valueOf(RequestType.class, value.toString()));
                 case "proposalFile" -> existing.setProposalFile(value.toString());
                 case "expectedReturnDate" -> existing.setExpectedReturnDate(LocalDateTime.parse(value.toString()));
             }
@@ -110,13 +111,14 @@ public class AccessRequestService {
                 .orElseThrow(() -> new AccessRequestNotFoundException(id));
         accessRequestRepository.delete(existing);
     }
-    public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
-        System.out.println("Filter by: userId=" + userId + ", status=" + status + ", date=" + date);
 
+    public Page<AccessRequestDTO> filterRequests(RequestStatus status, String equipmentType, Long userId, Pageable pageable) {
+        return accessRequestRepository.filterAccessRequests(status, equipmentType, userId, pageable);
+    }
+
+    public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(userId, status, date, pageable);
         return pageResult.getContent();
     }
-
-
 }
