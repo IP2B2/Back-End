@@ -20,13 +20,14 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
             "FROM AccessRequest ar " +
             "WHERE ar.user.id = :userId " +
             "AND (:status IS NULL OR ar.status = :status) " +
-            "AND (:date IS NULL OR FUNCTION('DATE', ar.requestDate) = :date)")
+            "AND (:date IS NULL OR CAST(ar.requestDate AS date) = :date)")
     Page<AccessRequestDTO> findDTOByUserWithFilters(
             @Param("userId") Long userId,
             @Param("status") RequestStatus status,
             @Param("date") java.time.LocalDate date,
             Pageable pageable
     );
+
 
 
 

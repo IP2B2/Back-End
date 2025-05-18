@@ -111,6 +111,8 @@ public class AccessRequestService {
         accessRequestRepository.delete(existing);
     }
     public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
+        System.out.println("Filter by: userId=" + userId + ", status=" + status + ", date=" + date);
+
         Pageable pageable = PageRequest.of(page, size);
         Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(userId, status, date, pageable);
         return pageResult.getContent();
