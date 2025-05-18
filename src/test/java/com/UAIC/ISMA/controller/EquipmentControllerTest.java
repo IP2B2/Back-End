@@ -40,6 +40,7 @@ public class EquipmentControllerTest {
         equipmentDTO.setId(1L);
         equipmentDTO.setName("Oscilloscope");
         equipmentDTO.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        equipmentDTO.setLaboratoryId(10L);
     }
 
     @Test
@@ -152,6 +153,11 @@ public class EquipmentControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Page<?> resultPage = (Page<?>) response.getBody();
         assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
     }
 
     @Test
@@ -171,6 +177,11 @@ public class EquipmentControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Page<?> resultPage = (Page<?>) response.getBody();
         assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
     }
 
     @Test
@@ -190,6 +201,11 @@ public class EquipmentControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Page<?> resultPage = (Page<?>) response.getBody();
         assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
     }
 
     @Test
@@ -209,6 +225,12 @@ public class EquipmentControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Page<?> resultPage = (Page<?>) response.getBody();
         assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
+
     }
 
     @Test
@@ -228,6 +250,11 @@ public class EquipmentControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Page<?> resultPage = (Page<?>) response.getBody();
         assertEquals(1, resultPage.getContent().size());
+
+        EquipmentDTO dto = (EquipmentDTO) resultPage.getContent().get(0);
+        assertEquals("Oscilloscope", dto.getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, dto.getAvailabilityStatus());
+        assertEquals(10L, dto.getLaboratoryId());
     }
 
     @Test

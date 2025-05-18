@@ -192,7 +192,9 @@ public class EquipmentServiceTest {
         Page<EquipmentDTO> result = equipmentService.searchEquipment(name, status, labId, pageable);
 
         assertEquals(1, result.getTotalElements());
-        assertEquals(name, result.getContent().get(0).getName());
+        assertEquals("Oscilloscope", result.getContent().get(0).getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, result.getContent().get(0).getAvailabilityStatus());
+        assertEquals(10L, result.getContent().get(0).getLaboratoryId());
     }
 
     @Test
@@ -210,7 +212,9 @@ public class EquipmentServiceTest {
         Page<EquipmentDTO> result = equipmentService.searchEquipment(name, status, labId, pageable);
 
         assertEquals(1, result.getTotalElements());
+        assertEquals("Oscilloscope", result.getContent().get(0).getName());
         assertEquals(AvailabilityStatus.AVAILABLE, result.getContent().get(0).getAvailabilityStatus());
+        assertEquals(10L, result.getContent().get(0).getLaboratoryId());
     }
 
     @Test
@@ -228,7 +232,9 @@ public class EquipmentServiceTest {
         Page<EquipmentDTO> result = equipmentService.searchEquipment(name, status, labId, pageable);
 
         assertEquals(1, result.getTotalElements());
-        assertEquals(labId, result.getContent().get(0).getLaboratoryId());
+        assertEquals("Oscilloscope", result.getContent().get(0).getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, result.getContent().get(0).getAvailabilityStatus());
+        assertEquals(10L, result.getContent().get(0).getLaboratoryId());
     }
 
     @Test
@@ -241,6 +247,9 @@ public class EquipmentServiceTest {
         Page<EquipmentDTO> result = equipmentService.searchEquipment(null, null, null, pageable);
 
         assertEquals(1, result.getTotalElements());
+        assertEquals("Oscilloscope", result.getContent().get(0).getName());
+        assertEquals(AvailabilityStatus.AVAILABLE, result.getContent().get(0).getAvailabilityStatus());
+        assertEquals(10L, result.getContent().get(0).getLaboratoryId());
     }
 
     @Test
