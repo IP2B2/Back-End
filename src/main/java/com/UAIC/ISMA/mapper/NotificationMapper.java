@@ -10,7 +10,8 @@ public class NotificationMapper {
                 entity.getId(),
                 entity.getMessage(),
                 entity.getCreatedDate(),
-                entity.getReadStatus()
+                entity.getReadStatus(),
+                entity.getUser() != null ? entity.getUser().getId() : null
         );
     }
 

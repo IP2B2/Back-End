@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "access_requests")
 public class AccessRequest implements Serializable {
-
+  
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -57,7 +57,7 @@ public class AccessRequest implements Serializable {
     @OneToOne(mappedBy = "accessRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private VirtualAccess virtualAccess;
 
-
+  
     public AccessRequest() {
         this.requestDate = LocalDateTime.now();
     }

@@ -23,7 +23,7 @@ public class RequestApprovalController {
         this.requestApprovalService = requestApprovalService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     @Operation(
             summary = "Get all request approvals",
             description = "Returns a list of all request approvals. Optionally, filter by approver ID and/or access request ID."

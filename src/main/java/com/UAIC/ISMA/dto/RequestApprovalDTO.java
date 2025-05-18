@@ -13,20 +13,13 @@ public class RequestApprovalDTO {
     public RequestApprovalDTO() {
     }
 
-    public RequestApprovalDTO(Long id, String approvalStatus, LocalDateTime approvalDate, String comments, Long accessRequestId, Long approverId) {
+    public RequestApprovalDTO(Long id, String approvalStatus, LocalDateTime approvalDate, String comments, Long approverId, Long accessRequestId) {
         this.id = id;
         this.approvalStatus = approvalStatus;
         this.approvalDate = approvalDate;
         this.comments = comments;
-        this.accessRequestId = accessRequestId;
         this.approverId = approverId;
-    }
-
-    public RequestApprovalDTO(Long id, String approvalStatus, LocalDateTime approvalDate, String comments) {
-        this.id = id;
-        this.approvalStatus = approvalStatus;
-        this.approvalDate = approvalDate;
-        this.comments = comments;
+        this.accessRequestId = accessRequestId;
     }
 
     public Long getId() {
