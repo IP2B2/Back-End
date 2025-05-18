@@ -1,12 +1,11 @@
 
 package com.UAIC.ISMA.service;
 
-import com.UAIC.ISMA.dao.AccessRequest;
-import com.UAIC.ISMA.dao.Equipment;
-import com.UAIC.ISMA.dao.User;
+import com.UAIC.ISMA.entity.AccessRequest;
+import com.UAIC.ISMA.entity.Equipment;
+import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.exception.EntityNotFoundException;
-import com.UAIC.ISMA.mapper.AccessRequestMapper;
 import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.EquipmentRepository;
 import com.UAIC.ISMA.repository.UserRepository;

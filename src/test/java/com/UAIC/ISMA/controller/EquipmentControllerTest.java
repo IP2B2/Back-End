@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.controller;
 
-import com.UAIC.ISMA.dao.enums.AvailabilityStatus;
+import com.UAIC.ISMA.entity.enums.AvailabilityStatus;
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
 import com.UAIC.ISMA.service.EquipmentService;

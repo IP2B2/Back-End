@@ -1,6 +1,6 @@
 package com.UAIC.ISMA.mapper;
 
-import com.UAIC.ISMA.dao.RequestDocument;
+import com.UAIC.ISMA.entity.RequestDocument;
 import com.UAIC.ISMA.dto.RequestDocumentDTO;
 
 public class RequestDocumentMapper {
