@@ -2,10 +2,14 @@ package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.entity.Equipment;
 import com.UAIC.ISMA.dto.EquipmentDTO;
+import com.UAIC.ISMA.entity.enums.AvailabilityStatus;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.mapper.EquipmentMapper;
 import com.UAIC.ISMA.repository.EquipmentRepository;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -58,4 +62,19 @@ public class EquipmentService {
                 .orElseThrow(() -> new EquipmentNotFoundException(id));
         equipmentRepository.delete(equipment);
     }
+
+    public Page<EquipmentDTO> searchEquipment(String name, String status, Long labId, Pageable pageable) {
+        AvailabilityStatus parsedStatus = null;
+        if (status != null) {
+            try {
+                parsedStatus = AvailabilityStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new InvalidInputException("Invalid availability status: " + status);
+            }
+        }
+
+        return equipmentRepository.searchByNameStatusAndLabId(name, parsedStatus, labId, pageable);
+    }
+
+
 }
