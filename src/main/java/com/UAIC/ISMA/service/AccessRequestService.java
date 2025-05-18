@@ -4,16 +4,21 @@ import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.entity.Equipment;
 import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.dto.AccessRequestDTO;
+import com.UAIC.ISMA.entity.enums.RequestStatus;
 import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
+import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.mapper.AccessRequestMapper;
 import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.EquipmentRepository;
 import com.UAIC.ISMA.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -105,4 +110,13 @@ public class AccessRequestService {
                 .orElseThrow(() -> new AccessRequestNotFoundException(id));
         accessRequestRepository.delete(existing);
     }
+    public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
+        System.out.println("Filter by: userId=" + userId + ", status=" + status + ", date=" + date);
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(userId, status, date, pageable);
+        return pageResult.getContent();
+    }
+
+
 }

@@ -1,9 +1,11 @@
 package com.UAIC.ISMA.dto;
 
 import com.UAIC.ISMA.entity.enums.AvailabilityStatus;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 
 import java.time.LocalDate;
 
