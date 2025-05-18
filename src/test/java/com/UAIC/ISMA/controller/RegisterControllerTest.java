@@ -1,24 +1,26 @@
 package com.UAIC.ISMA.controller;
 
+import com.UAIC.ISMA.config.JwtUtil;
 import com.UAIC.ISMA.dao.Role;
 import com.UAIC.ISMA.dao.User;
 import com.UAIC.ISMA.dao.enums.RoleName;
-import com.UAIC.ISMA.dto.RegisterRequest;
-import com.UAIC.ISMA.dto.RegisterResponse;
+import com.UAIC.ISMA.dto.RegistrationRequest;
+import com.UAIC.ISMA.dto.ResetPasswordRequest;
+import com.UAIC.ISMA.exception.DuplicateEmailException;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.repository.RoleRepository;
 import com.UAIC.ISMA.repository.UserRepository;
 import com.UAIC.ISMA.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-
-import org.springframework.http.HttpStatus;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class RegisterControllerTest {
@@ -30,73 +32,78 @@ class RegisterControllerTest {
     private RoleRepository roleRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private EmailService emailService;
 
     @Mock
-    private EmailService emailService;
+    private JwtUtil jwtUtil;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private RegisterController registerController;
 
-    private RegisterRequest request;
-    private Role studentRole;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        request = new RegisterRequest();
-        request.setUsername("testuser");
-        request.setEmail("test@uaic.ro");
-        request.setPassword("password123");
-
-        studentRole = new Role();
-        studentRole.setId(1L);
-        studentRole.setRoleName(RoleName.STUDENT);
     }
 
     @Test
-    void testRegisterUser_Success() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
-        when(roleRepository.findByRoleName(RoleName.STUDENT)).thenReturn(Optional.of(studentRole));
-        when(passwordEncoder.encode("password123")).thenReturn("hashedPassword");
+    void testRegister_Success() {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setEmail("john.doe@student.uaic.ro");
+        request.setRegistrationNumber("123456");
 
-        ResponseEntity<RegisterResponse> response = registerController.registerUser(request);
+        when(userRepository.existsByEmail("john.doe@student.uaic.ro")).thenReturn(false);
+        when(jwtUtil.generateResetToken(any())).thenReturn("dummy-token");
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("User registered successfully with ADMIN role!", response.getBody().getMessage());
+        Role role = new Role();
+        role.setRoleName(RoleName.STUDENT);
+        when(roleRepository.findByRoleName(RoleName.STUDENT)).thenReturn(role);
 
+        ResponseEntity<?> response = registerController.register(request);
+
+        assertEquals(201, response.getStatusCodeValue());
         verify(userRepository, times(1)).save(any(User.class));
-        verify(emailService, times(1)).sendEmail(eq("test@uaic.ro"), anyString(), anyString());
+        verify(emailService, times(1)).sendActivationEmail(eq("john.doe@student.uaic.ro"), eq("dummy-token"));
     }
 
     @Test
-    void testRegisterUser_UsernameAlreadyTaken() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(new User()));
+    void testRegister_EmailExists() {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setEmail("exists@student.uaic.ro");
+        request.setRegistrationNumber("123456");
 
-        ResponseEntity<RegisterResponse> response = registerController.registerUser(request);
+        when(userRepository.existsByEmail("exists@student.uaic.ro")).thenThrow(DuplicateEmailException.class);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Username already taken!", response.getBody().getMessage());
-
-        verify(userRepository, never()).save(any());
-        verify(emailService, never()).sendEmail(any(), any(), any());
     }
 
     @Test
-    void testRegisterUser_PasswordIsHashed() {
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
-        when(roleRepository.findByRoleName(RoleName.STUDENT)).thenReturn(Optional.of(studentRole));
-        when(passwordEncoder.encode("password123")).thenReturn("bcryptHashedPass");
+    void testResetPassword_Success() {
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setToken("valid-token");
+        request.setNewPassword("newpassword123");
 
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        when(jwtUtil.extractEmailFromResetToken("valid-token")).thenReturn("john.doe@student.uaic.ro");
 
-        registerController.registerUser(request);
+        User user = new User();
+        user.setStatus("inactive");
+        when(userRepository.findByEmail("john.doe@student.uaic.ro")).thenReturn(user);
+        when(passwordEncoder.encode("newpassword123")).thenReturn("encodedPassword");
 
-        verify(userRepository).save(userCaptor.capture());
+        ResponseEntity<?> response = registerController.resetPassword(request);
 
-        User savedUser = userCaptor.getValue();
-        assertNotEquals("password123", savedUser.getPassword());
-        assertEquals("bcryptHashedPass", savedUser.getPassword());
+        assertEquals(200, response.getStatusCodeValue());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void testResetPassword_InvalidToken() {
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setToken("invalid-token");
+        request.setNewPassword("password");
+
+        when(jwtUtil.extractEmailFromResetToken("invalid-token")).thenThrow(InvalidInputException.class);
+
     }
 }

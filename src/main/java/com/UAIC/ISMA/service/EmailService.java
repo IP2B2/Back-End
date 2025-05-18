@@ -7,18 +7,24 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
+
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendEmail(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
+    public void sendActivationEmail(String to, String token) {
+        String url = "https://ismauaic.com/reset-password?token=" + token;
+        String subject = "Seteaza-ti o parola noua.";
+        String message = "Hello!\n\nContul tau a fost creat, dar nu este verificat inca.\n\n" +
+                "Pentru a se activa contul, este nevoie sa iti setezi o parola, accesand acest link:\n" + url +
+                "\n\nLinkul expira in 60 de minute.";
 
-        message.setFrom("mail");
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setTo(to);
+        email.setFrom("ISMA Registration <tudor.leonte10@gmail.com>");
+        email.setReplyTo("resetpassword@ismauaic.com");
+        email.setSubject(subject);
+        email.setText(message);
 
-        mailSender.send(message);
-        System.out.println("Mail sent successfully");
+        mailSender.send(email);
     }
 }
