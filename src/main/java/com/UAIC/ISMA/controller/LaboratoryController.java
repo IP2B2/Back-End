@@ -35,7 +35,7 @@ public class LaboratoryController {
         this.laboratoryService = laboratoryService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     @Operation(
             summary = "Get all laboratories",
             description = "Returns a list of all laboratories."

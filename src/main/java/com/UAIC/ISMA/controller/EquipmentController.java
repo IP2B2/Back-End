@@ -36,7 +36,7 @@ public class EquipmentController {
         this.equipmentService = equipmentService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     @Operation(
             summary = "Get all equipments",
             description = "Returns a list of all equipments. Optionally filter by laboratoryId."
