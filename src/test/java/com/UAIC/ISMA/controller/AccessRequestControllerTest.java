@@ -1,7 +1,11 @@
 
 package com.UAIC.ISMA.controller;
 
+import com.UAIC.ISMA.config.UserDetailsImpl;
 import com.UAIC.ISMA.dto.AccessRequestDTO;
+import com.UAIC.ISMA.entity.Role;
+import com.UAIC.ISMA.entity.User;
+import com.UAIC.ISMA.entity.enums.RoleName;
 import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
 import com.UAIC.ISMA.service.AccessRequestService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +22,16 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 class AccessRequestControllerTest {
 
@@ -118,4 +132,34 @@ class AccessRequestControllerTest {
 
         assertThrows(AccessRequestNotFoundException.class, () -> accessRequestController.deleteAccessRequest(1L));
     }
+    @Test
+    void testFilterAccessRequests_Success() {
+        AccessRequestDTO dto = new AccessRequestDTO();
+        dto.setId(1L);
+        dto.setUserId(10L);
+        dto.setEquipmentId(20L);
+        dto.setProposalFile("proposal.pdf");
+        dto.setRequestDate(LocalDateTime.now());
+
+        Page<AccessRequestDTO> page = new PageImpl<>(List.of(dto));
+        when(accessRequestService.filterRequests(any(), any(), any(), any())).thenReturn(page);
+
+        User mockUser = new User();
+        mockUser.setId(10L);
+        mockUser.setRole(new Role(RoleName.ADMIN));
+
+        UserDetailsImpl mockUserDetails = new UserDetailsImpl(mockUser);
+
+        ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
+                null, "type", 10L, 0, 10, mockUserDetails
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(1L, response.getBody().getContent().get(0).getId());
+    }
+
+
+
 }
