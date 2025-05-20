@@ -148,4 +148,11 @@ public class LaboratoryController {
                 .collect(Collectors.joining("; "));
         return ResponseEntity.badRequest().body(errorMsg);
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        logger.error("Unexpected error: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Unexpected error occurred");
+    }
 }
