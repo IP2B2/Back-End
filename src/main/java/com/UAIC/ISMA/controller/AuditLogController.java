@@ -28,14 +28,20 @@ public class AuditLogController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all audit logs")
+    @Operation(
+            summary = "Get all audit logs",
+            description = "Returns a list of all audit logs. Each log contains: ID, action, details, timestamp, and user ID."
+    )
     public ResponseEntity<List<AuditLogDTO>> getAllAuditLogs() {
         log.info("Fetching all audit logs");
         return ResponseEntity.ok(auditLogService.findAll());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get audit log by ID")
+    @Operation(
+            summary = "Get audit log by ID",
+            description = "Returns a single audit log identified by its ID. Includes: ID, action, details, timestamp, and user ID."
+    )
     public ResponseEntity<AuditLogDTO> getAuditLogById(
             @Parameter(description = "Audit log ID") @PathVariable Long id) {
         log.info("Fetching audit log with id: {}", id);
@@ -43,21 +49,34 @@ public class AuditLogController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "Search audit logs by action keyword")
+    @Operation(
+            summary = "Search audit logs by keyword",
+            description = "Searches audit logs by keyword found in the 'action' field. Returns a list of matching logs."
+    )
     public ResponseEntity<List<AuditLogDTO>> searchByAction(@RequestParam String keyword) {
         log.info("Searching audit logs with keyword: {}", keyword);
         return ResponseEntity.ok(auditLogService.searchByAction(keyword));
     }
 
     @PostMapping
-    @Operation(summary = "Create a new audit log")
+    @Operation(
+            summary = "Create a new audit log",
+            description = "Creates a new audit log entry. Requires: action, details, timestamp, and user ID. Returns the created log.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Audit log created successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid input or user not found")
+            }
+    )
     public ResponseEntity<AuditLogDTO> createAuditLog(@RequestBody AuditLogDTO auditLogDTO) {
         log.info("Creating audit log for userId: {}", auditLogDTO.getUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(auditLogService.create(auditLogDTO));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update an existing audit log")
+    @Operation(
+            summary = "Update an existing audit log",
+            description = "Updates the audit log with the specified ID. Allows updating: action, details, timestamp, and user ID."
+    )
     public ResponseEntity<AuditLogDTO> updateAuditLog(@PathVariable Long id,
                                                       @RequestBody AuditLogDTO auditLogDTO) {
         log.info("Updating audit log id: {}", id);
@@ -65,7 +84,10 @@ public class AuditLogController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete an audit log")
+    @Operation(
+            summary = "Delete an audit log",
+            description = "Deletes the audit log identified by the given ID. Returns no content on success."
+    )
     public ResponseEntity<Void> deleteAuditLog(@PathVariable Long id) {
         log.info("Deleting audit log with id: {}", id);
         auditLogService.delete(id);
