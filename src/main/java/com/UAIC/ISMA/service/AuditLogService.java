@@ -1,8 +1,8 @@
 package com.UAIC.ISMA.service;
 
+import com.UAIC.ISMA.dto.AuditLogDTO;
 import com.UAIC.ISMA.entity.AuditLog;
 import com.UAIC.ISMA.entity.User;
-import com.UAIC.ISMA.dto.AuditLogDTO;
 import com.UAIC.ISMA.exception.AuditLogNotFoundException;
 import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.mapper.AuditLogMapper;
@@ -41,6 +41,17 @@ public class AuditLogService {
         AuditLog auditLog = auditLogRepository.findById(id)
                 .orElseThrow(() -> new AuditLogNotFoundException(id));
         return auditLogMapper.toDto(auditLog);
+    }
+
+    public AuditLogDTO searchById(Long id) {
+        return findById(id);
+    }
+
+    public List<AuditLogDTO> searchByAction(String keyword) {
+        return auditLogRepository.findByActionContainingIgnoreCase(keyword)
+                .stream()
+                .map(auditLogMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     public AuditLogDTO create(AuditLogDTO dto) {

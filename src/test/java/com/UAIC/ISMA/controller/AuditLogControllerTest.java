@@ -99,4 +99,14 @@ class AuditLogControllerTest {
         mockMvc.perform(delete("/api/audit-logs/1"))
                 .andExpect(status().isNoContent());
     }
+    @Test
+    void testSearchByAction() throws Exception {
+        when(auditLogService.searchByAction("CREATE")).thenReturn(List.of(dto));
+
+        mockMvc.perform(get("/api/audit-logs/search?keyword=CREATE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].action").value("CREATE"));
+    }
+
 }
