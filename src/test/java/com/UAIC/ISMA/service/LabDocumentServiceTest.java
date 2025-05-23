@@ -1,195 +1,109 @@
 package com.UAIC.ISMA.service;
 
+import com.UAIC.ISMA.dto.LabDocumentDTO;
 import com.UAIC.ISMA.entity.LabDocument;
 import com.UAIC.ISMA.entity.Laboratory;
-import com.UAIC.ISMA.dto.LabDocumentDTO;
-import com.UAIC.ISMA.exception.EntityNotFoundException;
-import com.UAIC.ISMA.exception.LabDocumentNotFoundException;
+import com.UAIC.ISMA.mapper.LabDocumentsMapper;
 import com.UAIC.ISMA.repository.LabDocumentRepository;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest(classes = LabDocumentService.class)
 class LabDocumentServiceTest {
 
-    @Mock
-    private LabDocumentRepository labDocumentRepository;
-
-    @Mock
-    private LaboratoryRepository laboratoryRepository;
-
-    @InjectMocks
+    @Autowired
     private LabDocumentService labDocumentService;
 
-    private LabDocument labDocument;
-    private LabDocumentDTO labDocumentDTO;
+    @MockBean
+    private LabDocumentRepository repository;
+
+    @MockBean
+    private LaboratoryRepository labRepo;
+
+    @MockBean
+    private LabDocumentsMapper mapper;
+
+    @MockBean
+    private AuditLogService auditLogService;
+
     private Laboratory lab;
+    private LabDocument savedDoc;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-
+    void setup() {
         lab = new Laboratory();
         lab.setId(1L);
 
-        labDocument = new LabDocument();
-        labDocument.setId(1L);
-        labDocument.setTitle("Test");
-        labDocument.setDescription("Desc");
-        labDocument.setFilePath("test/path.pdf");
-        labDocument.setUpdatedAt(LocalDateTime.now());
-        labDocument.setLaboratory(lab);
-
-        labDocumentDTO = new LabDocumentDTO();
-        labDocumentDTO.setId(1L);
-        labDocumentDTO.setTitle("Test");
-        labDocumentDTO.setDescription("Desc");
-        labDocumentDTO.setFilePath("test/path.pdf");
-        labDocumentDTO.setUpdatedAt(labDocument.getUpdatedAt());
-        labDocumentDTO.setLaboratoryId(1L);
+        savedDoc = LabDocument.builder()
+                .id(1L)
+                .filename("test.pdf")
+                .filePath("uploads/test.pdf")
+                .lab(lab)
+                .version("v1.0")
+                .fileType("application/pdf")
+                .archived(false)
+                .build();
     }
 
     @Test
-    void testFindById_Success() {
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.of(labDocument));
+    void storeDocument_shouldSaveSuccessfully() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.pdf", "application/pdf", "content".getBytes());
 
-        LabDocumentDTO result = labDocumentService.findById(1L);
+        when(labRepo.findById(1L)).thenReturn(Optional.of(lab));
+        when(repository.save(any())).thenReturn(savedDoc);
+        when(mapper.toDTO(any())).thenReturn(new LabDocumentDTO());
+
+        LabDocumentDTO result = labDocumentService.storeDocument(file, "1", null, "v1.0");
 
         assertNotNull(result);
-        assertEquals(labDocument.getId(), result.getId());
-        assertEquals(labDocument.getTitle(), result.getTitle());
-        assertEquals(labDocument.getDescription(), result.getDescription());
-        assertEquals(labDocument.getFilePath(), result.getFilePath());
+        verify(repository, times(1)).save(any());
     }
 
     @Test
-    void testFindById_LabDocumentNotFound() {
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.empty());
+    void updateDocument_shouldArchiveOldAndSaveNew() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "new.pdf", "application/pdf", "newcontent".getBytes());
 
-        assertThrows(LabDocumentNotFoundException.class, () -> labDocumentService.findById(1L));
-    }
+        LabDocument oldDoc = LabDocument.builder()
+                .id(1L)
+                .filename("old.pdf")
+                .filePath("uploads/old.pdf")
+                .lab(lab)
+                .version("v1.0")
+                .fileType("application/pdf")
+                .archived(false)
+                .build();
 
-    @Test
-    void testCreate_Succes() {
-        when(laboratoryRepository.findById(1L)).thenReturn(Optional.of(lab));
-        when(labDocumentRepository.save(any(LabDocument.class))).thenReturn(labDocument);
+        when(repository.findById(1L)).thenReturn(Optional.of(oldDoc));
+        when(repository.save(any())).thenReturn(savedDoc);
+        when(mapper.toDTO(any())).thenReturn(new LabDocumentDTO());
 
-        LabDocumentDTO result = labDocumentService.createDocument(labDocumentDTO);
+        LabDocumentDTO result = labDocumentService.updateDocument(1L, file, "v2.0");
 
         assertNotNull(result);
-        assertEquals(labDocument.getId(), result.getId());
-        assertEquals(labDocument.getTitle(), result.getTitle());
-        assertEquals(labDocument.getDescription(), result.getDescription());
-        assertEquals(labDocument.getFilePath(), result.getFilePath());
-        assertEquals(lab.getId(), result.getLaboratoryId());
+        verify(repository, times(2)).save(any()); // once for archived, once for new
     }
 
     @Test
-    void testCreate_Fail_NullLabDocumentDTO() {
-        assertThrows(NullPointerException.class, () -> labDocumentService.createDocument(null));
-    }
+    void deleteDocument_shouldDeleteSuccessfully() throws Exception {
+        LabDocument doc = savedDoc;
+        when(repository.findById(1L)).thenReturn(Optional.of(doc));
 
-    @Test
-    void testCreate_Fail_LaboratoryNotFound() {
-        when(laboratoryRepository.findById(1L)).thenReturn(Optional.empty());
+        labDocumentService.deleteDocument(1L);
 
-        assertThrows(EntityNotFoundException.class, () -> labDocumentService.createDocument(labDocumentDTO));
-    }
-
-    @Test
-    void testUpdate_Success() {
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.of(labDocument));
-        when(laboratoryRepository.findById(1L)).thenReturn(Optional.of(lab));
-        when(labDocumentRepository.save(any(LabDocument.class))).thenReturn(labDocument);
-
-        LabDocumentDTO result = labDocumentService.updateLabDocument(1L, labDocumentDTO);
-
-        assertNotNull(result);
-        assertEquals(labDocument.getId(), result.getId());
-        assertEquals(labDocument.getTitle(), result.getTitle());
-        assertEquals(labDocument.getDescription(), result.getDescription());
-        assertEquals(labDocument.getFilePath(), result.getFilePath());
-    }
-
-    @Test
-    void testUpdate_Fail_DocumentNotFound() {
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(LabDocumentNotFoundException.class, () ->
-                labDocumentService.updateLabDocument(1L, labDocumentDTO)
-        );
-    }
-
-    @Test
-    void testUpdate_Fail_LaboratoryNotFound() {
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.of(labDocument));
-        when(laboratoryRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () ->
-                labDocumentService.updateLabDocument(1L, labDocumentDTO)
-        );
-    }
-
-    @Test
-    void testUpdate_Fail_NullLabDocumentDTO(){
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.of(labDocument));
-
-        assertThrows(NullPointerException.class, () -> labDocumentService.updateLabDocument(1L, null));
-    }
-
-    @Test
-    void testDelete_Success(){
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.of(labDocument));
-
-        labDocumentService.deleteLabDocument(1L);
-
-        verify(labDocumentRepository,times(1)).delete(labDocument);
-    }
-
-    @Test
-    void testDelete_Fail_NotificationNotFound() {
-        when(labDocumentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(LabDocumentNotFoundException.class, () -> labDocumentService.deleteLabDocument(1L));
-    }
-
-    @Test
-    void testGetAllDocuments_Succes(){
-        LabDocument labDocument2 = new LabDocument();
-        labDocument2.setId(2L);
-        labDocument2.setTitle("Test");
-        labDocument2.setDescription("Desc");
-        labDocument2.setFilePath("test/path.pdf");
-        labDocument2.setUpdatedAt(LocalDateTime.now());
-        labDocument2.setLaboratory(lab);
-
-        when(labDocumentRepository.findAll()).thenReturn(List.of(labDocument, labDocument2));
-
-        List<LabDocumentDTO> result = labDocumentService.getAllDocuments();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(labDocument.getId(), result.get(0).getId());
-        assertEquals(labDocument2.getId(), result.get(1).getId());
-    }
-
-    @Test
-    void testFindAll_Fail_EmptyList() {
-        when(labDocumentRepository.findAll()).thenReturn(List.of());
-
-        List<LabDocumentDTO> result = labDocumentService.getAllDocuments();
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        verify(repository).delete(doc);
     }
 }
