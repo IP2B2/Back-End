@@ -38,4 +38,14 @@ public class Equipment implements Serializable {
 
     @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccessRequest> accessRequests;
+
+    public Equipment(String name, String inventoryNumber, LocalDate acquisitionDate,
+                     AvailabilityStatus availabilityStatus, String accessRequirements, Laboratory laboratory) {
+        this.name = name;
+        this.inventoryNumber = inventoryNumber;
+        this.acquisitionDate = acquisitionDate;
+        this.availabilityStatus = availabilityStatus;
+        this.accessRequirements = accessRequirements;
+        this.laboratory = laboratory;
+    }
 }
