@@ -2,6 +2,7 @@ package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.config.UserDetailsImpl;
 import com.UAIC.ISMA.entity.User;
+import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,10 +19,8 @@ public class UserDetailsImplService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("Attempting login for user: " + username);
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        System.out.println("User found: " + user.getUsername());
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail).orElseThrow(() -> new UserNotFoundException("User with this email or username not found"));
         return new UserDetailsImpl(user);
     }
 }

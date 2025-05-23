@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,6 +95,14 @@ public class AccessRequestController {
         logger.info("Deleted access request with ID {}", id);
         return ResponseEntity.noContent().build();
     }
+
+    @PreAuthorize("hasAuthority('COORDONATOR')")
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<AccessRequestDTO> approveRequest(@PathVariable Long id) {
+        AccessRequestDTO approvedRequest = accessRequestService.approveAccessRequest(id);
+        return ResponseEntity.ok(approvedRequest);
+    }
+
 
     @Operation(summary = "Filter access requests", description = "Filter by status, equipment type, userId. Paginated.")
     @GetMapping("/search")

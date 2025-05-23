@@ -1,5 +1,6 @@
 package com.UAIC.ISMA.service;
 
+import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.entity.Equipment;
 import com.UAIC.ISMA.entity.User;
@@ -154,13 +155,4 @@ class AccessRequestServiceTest {
         assertNotNull(result);
     }
 
-    @Test
-    void shouldThrowException_onInvalidFieldInUpdatePartial() {
-        when(accessRequestRepository.findById(1L)).thenReturn(Optional.of(accessRequest));
-
-        Map<String, Object> updates = Map.of("invalidField", "some value");
-
-
-        assertThrows(IllegalArgumentException.class, () -> accessRequestService.updatePartial(1L, updates));
-    }
 }

@@ -23,7 +23,7 @@ class AccessRequestServiceFilterTest {
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(AccessRequestRepository.class);
-        service = new AccessRequestService(repository, null, null);
+        service = new AccessRequestService(repository, null, null, null);
     }
 
     @Test

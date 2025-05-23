@@ -25,4 +25,41 @@ public class EmailService {
         email.setText(message);
         mailSender.send(email);
     }
+
+    public void sendVirtualAccessCredentials(String to, String username, String password) {
+        String subject = "Acces Virtual Aprobat - Resurse UAIC";
+
+        String message = "Salut!\n\n" +
+                "Cererea ta pentru acces la resurse virtuale a fost aprobată.\n\n" +
+                "Ai primit următoarele date de autentificare:\n" +
+                "Username: " + username + "\n" +
+                "Parola: " + password + "\n\n" +
+                "Te rugăm să te autentifici cât mai curând și să îți schimbi parola la prima utilizare.\n\n" +
+                "Succes!\nEchipa ISMA";
+
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setTo(to);
+        email.setFrom("ISMA Virtual Access <tudor.leonte10@gmail.com>");
+        email.setReplyTo("support@ismauaic.com");
+        email.setSubject(subject);
+        email.setText(message);
+
+        mailSender.send(email);
+    }
+
+    public void sendAccountApprovedNotification(String to) {
+        String subject = "Cont aprobat - ISMA";
+        String message = "Salut!\n\nContul tău de student a fost aprobat de un administrator.\n" +
+                "Acum poți accesa platforma ISMA cu credențialele tale.\n\n" +
+                "Succes!\nEchipa ISMA";
+
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setTo(to);
+        email.setSubject(subject);
+        email.setText(message);
+        email.setFrom("ISMA Support <tudor.leonte10@gmail.com>");
+        mailSender.send(email);
+    }
+
+
 }

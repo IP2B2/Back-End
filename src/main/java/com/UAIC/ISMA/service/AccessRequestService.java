@@ -13,6 +13,7 @@ import com.UAIC.ISMA.mapper.AccessRequestMapper;
 import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.EquipmentRepository;
 import com.UAIC.ISMA.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,16 +37,20 @@ public class AccessRequestService {
     private final AccessRequestRepository accessRequestRepository;
     private final UserRepository userRepository;
     private final EquipmentRepository equipmentRepository;
+    private final VirtualAccessService virtualAccessService;
+
 
     @Autowired
     public AccessRequestService(
             AccessRequestRepository accessRequestRepository,
             UserRepository userRepository,
-            EquipmentRepository equipmentRepository
+            EquipmentRepository equipmentRepository,
+            VirtualAccessService virtualAccessService
     ) {
         this.accessRequestRepository = accessRequestRepository;
         this.userRepository = userRepository;
         this.equipmentRepository = equipmentRepository;
+        this.virtualAccessService = virtualAccessService;
     }
 
     public List<AccessRequestDTO> findAll() {
@@ -142,6 +147,25 @@ public class AccessRequestService {
 
         return AccessRequestMapper.toDTO(accessRequestRepository.save(existing));
     }
+
+    @Transactional
+    public AccessRequestDTO approveAccessRequest(Long requestId) {
+        AccessRequest request = accessRequestRepository.findById(requestId)
+                .orElseThrow(() -> new AccessRequestNotFoundException(requestId));
+
+        if (request.getStatus() == RequestStatus.APPROVED) {
+            throw new IllegalStateException("AccessRequest is already approved.");
+        }
+
+        request.setStatus(RequestStatus.APPROVED);
+
+        if (request.getRequestType() == RequestType.VIRTUAL) {
+            virtualAccessService.createVirtualAccessForRequest(request);
+        }
+
+        return AccessRequestMapper.toDTO(accessRequestRepository.save(request));
+    }
+
 
     public void delete(Long id) {
         logger.info("Deleting AccessRequest with ID={}", id);
