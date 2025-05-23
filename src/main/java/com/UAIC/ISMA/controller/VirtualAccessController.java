@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class VirtualAccessController {
         this.virtualAccessService = virtualAccessService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     @Operation(
             summary = "Get all virtual accesses",
             description = "Returns a list with all the virtual accesses in the database"
@@ -35,6 +35,7 @@ public class VirtualAccessController {
         return ResponseEntity.ok(accesses);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{id}")
     @Operation(
             summary = "Get virtual access by id",
@@ -47,6 +48,7 @@ public class VirtualAccessController {
         return ResponseEntity.ok(virtualAccessDTO);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     @Operation(
             summary = "Create a new virtual access",

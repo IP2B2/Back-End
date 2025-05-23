@@ -1,10 +1,10 @@
 
 package com.UAIC.ISMA.service;
 
+import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.entity.Equipment;
 import com.UAIC.ISMA.entity.User;
-import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.exception.EntityNotFoundException;
 import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.EquipmentRepository;
@@ -146,4 +146,6 @@ class AccessRequestServiceTest {
 
         assertNotNull(result);
     }
+
+
 }

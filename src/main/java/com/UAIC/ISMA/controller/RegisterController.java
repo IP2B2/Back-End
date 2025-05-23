@@ -103,9 +103,8 @@ public class RegisterController {
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setStatus("active");
         userRepository.save(user);
 
-        return ResponseEntity.ok("Password set successfully. You may now log in.");
+        return ResponseEntity.ok("Password set successfully");
     }
 }
