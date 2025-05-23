@@ -1,74 +1,35 @@
 package com.UAIC.ISMA.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class LaboratoryDTO {
     private Long id;
+
+    @NotBlank(message = "Name must not be blank")
+    @Size(max = 255, message = "Name must be at most 255 characters")
     private String labName;
+
+    @Size(max = 1000, message = "Description must be at most 1000 characters")
     private String description;
+
+    @NotBlank(message = "Location must not be blank")
+    @Size(max = 255, message = "Location must be at most 255 characters")
     private String location;
 
     private List<Long> equipmentIds;
     private List<Long> labDocumentIds;
 
-    public LaboratoryDTO() {
-    }
-
-    public LaboratoryDTO(Long id, String labName, String description, String location,
-                         List<Long> equipmentIds, List<Long> labDocumentIds) {
+    public LaboratoryDTO(Long id, String labName, String description, String location) {
         this.id = id;
         this.labName = labName;
         this.description = description;
         this.location = location;
-        this.equipmentIds = equipmentIds;
-        this.labDocumentIds = labDocumentIds;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getLabName() {
-        return labName;
-    }
-
-    public void setLabName(String labName) {
-        this.labName = labName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public List<Long> getEquipmentIds() {
-        return equipmentIds;
-    }
-
-    public void setEquipmentIds(List<Long> equipmentIds) {
-        this.equipmentIds = equipmentIds;
-    }
-
-    public List<Long> getLabDocumentIds() {
-        return labDocumentIds;
-    }
-
-    public void setLabDocumentIds(List<Long> labDocumentIds) {
-        this.labDocumentIds = labDocumentIds;
     }
 }

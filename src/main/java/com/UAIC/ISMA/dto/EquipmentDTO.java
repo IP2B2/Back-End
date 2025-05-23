@@ -5,10 +5,14 @@ import com.UAIC.ISMA.entity.enums.AvailabilityStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 
 
 import java.time.LocalDate;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class EquipmentDTO {
     private Long id;
 
@@ -32,74 +36,15 @@ public class EquipmentDTO {
     private String photo;
     private LocalDate acquisitionDate;
 
-    public EquipmentDTO() {
-    }
-
-    public EquipmentDTO(Long id, String name, String photo, String inventoryNumber,
-                        LocalDate acquisitionDate, AvailabilityStatus availabilityStatus,
-                        Long laboratoryId, String accessRequirements) {
+    public EquipmentDTO(Long id, String name, String photo, String inventoryNumber, LocalDate acquisitionDate
+    , AvailabilityStatus availabilityStatus, Long laboratoryId, String accessRequirements) {
         this.id = id;
         this.name = name;
-        this.photo = photo;
         this.inventoryNumber = inventoryNumber;
-        this.acquisitionDate = acquisitionDate;
         this.availabilityStatus = availabilityStatus;
-        this.laboratoryId = laboratoryId;
-        this.accessRequirements = accessRequirements;
-    }
-
-
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPhoto() {
-        return photo;
-    }
-    public void setPhoto(String photo) {
         this.photo = photo;
-    }
-
-    public String getInventoryNumber() {
-        return inventoryNumber;
-    }
-    public void setInventoryNumber(String inventoryNumber) {
-        this.inventoryNumber = inventoryNumber;
-    }
-
-    public LocalDate getAcquisitionDate() {
-        return acquisitionDate;
-    }
-    public void setAcquisitionDate(LocalDate acquisitionDate) {
-        this.acquisitionDate = acquisitionDate;
-    }
-
-    public AvailabilityStatus getAvailabilityStatus() {
-        return availabilityStatus;
-    }
-    public void setAvailabilityStatus(AvailabilityStatus availabilityStatus) { this.availabilityStatus = availabilityStatus; }
-
-    public Long getLaboratoryId() {
-        return laboratoryId;
-    }
-    public void setLaboratoryId(Long laboratoryId) {
         this.laboratoryId = laboratoryId;
-    }
-
-    public String getAccessRequirements() {
-        return accessRequirements;
-    }
-    public void setAccessRequirements(String accessRequirements) {
         this.accessRequirements = accessRequirements;
+        this.acquisitionDate = acquisitionDate;
     }
 }

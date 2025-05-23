@@ -3,6 +3,7 @@ package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.entity.Laboratory;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.exception.LaboratoryNotFoundException;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -148,6 +153,92 @@ public class LaboratoryServiceTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testSearchLaboratoriesAllFilters_Success() {
+        String name = laboratoryDTO.getLabName(); // "Lab A"
+        String location = laboratoryDTO.getLocation(); // "Building X"
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<LaboratoryDTO> page = new PageImpl<>(List.of(laboratoryDTO));
+
+        when(laboratoryRepository.searchLaboratoryByNameAndLocation(eq(name), eq(location), eq(pageable)))
+                .thenReturn(page);
+
+        Page<LaboratoryDTO> result = laboratoryService.searchLaboratories(name, location, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Lab A", result.getContent().get(0).getLabName());
+        assertEquals("Building X", result.getContent().get(0).getLocation());
+    }
+
+    @Test
+    void testSearchLaboratoriesByNameOnly_Success() {
+        String name = laboratoryDTO.getLabName(); // "Lab A"
+        String location = null;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<LaboratoryDTO> page = new PageImpl<>(List.of(laboratoryDTO));
+
+        when(laboratoryRepository.searchLaboratoryByNameAndLocation(eq(name), isNull(), eq(pageable)))
+                .thenReturn(page);
+
+        Page<LaboratoryDTO> result = laboratoryService.searchLaboratories(name, location, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Lab A", result.getContent().get(0).getLabName());
+        assertEquals("Building X", result.getContent().get(0).getLocation());
+    }
+
+    @Test
+    void testSearchLaboratoriesByLocationOnly_Success() {
+        String name = null;
+        String location = laboratoryDTO.getLocation(); // "Building X"
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<LaboratoryDTO> page = new PageImpl<>(List.of(laboratoryDTO));
+
+        when(laboratoryRepository.searchLaboratoryByNameAndLocation(isNull(), eq(location), eq(pageable)))
+                .thenReturn(page);
+
+        Page<LaboratoryDTO> result = laboratoryService.searchLaboratories(name, location, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Lab A", result.getContent().get(0).getLabName());
+        assertEquals("Building X", result.getContent().get(0).getLocation());
+    }
+
+    @Test
+    void testSearchLaboratoriesWithNoFilters_Success() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(laboratoryRepository.searchLaboratoryByNameAndLocation(isNull(), isNull(), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(laboratoryDTO)));
+
+        Page<LaboratoryDTO> result = laboratoryService.searchLaboratories(null, null, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Lab A", result.getContent().get(0).getLabName());
+        assertEquals("Building X", result.getContent().get(0).getLocation());
+    }
+
+    @Test
+    void testSearchLaboratories_InvalidLocation() {
+        String invalidLocation = "@@!!!Etaj##";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThrows(InvalidInputException.class, () ->
+                laboratoryService.searchLaboratories(null, invalidLocation, pageable));
+    }
+
+    @Test
+    void testSearchLaboratories_InvalidName() {
+        String invalidName = "";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertThrows(InvalidInputException.class, () ->
+                laboratoryService.searchLaboratories(invalidName, null, pageable));
     }
 
 }

@@ -269,6 +269,4 @@ public class EquipmentControllerTest {
                 equipmentController.searchEquipment(null, invalidStatus, null, pageable));
     }
 
-
-
 }
