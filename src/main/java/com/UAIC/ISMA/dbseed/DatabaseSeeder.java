@@ -72,7 +72,15 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             User student = userRepository.findByEmail("student@student.uaic.ro");
             if (student != null) {
-                AccessRequest request = accessRequestRepo.save(new AccessRequest(student, eq1, RequestStatus.PENDING, RequestType.PHYSICAL));
+                AccessRequest request = AccessRequest.builder()
+                        .user(student)
+                        .equipment(eq1)
+                        .status(RequestStatus.PENDING)
+                        .requestType(RequestType.PHYSICAL)
+                        .build();
+
+                request = accessRequestRepo.save(request);
+
 
                 approvalRepo.save(new RequestApproval(ApprovalStatus.PENDING, request, student, "Initial verification"));
                 docRepo.save(new RequestDocument("Cerere Microscop", "Cerere pentru acces microscop", "/files/microscop.pdf", request, student));
