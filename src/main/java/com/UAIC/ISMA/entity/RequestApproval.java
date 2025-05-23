@@ -1,14 +1,19 @@
 package com.UAIC.ISMA.entity;
 
-
 import com.UAIC.ISMA.entity.enums.ApprovalStatus;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "request_approvals")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RequestApproval implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +23,7 @@ public class RequestApproval implements Serializable {
     @Column(nullable = false)
     private ApprovalStatus approvalStatus;
 
-    private LocalDateTime approvalDate;
+    private LocalDateTime approvalDate = LocalDateTime.now();
 
     private String comments;
 
@@ -30,7 +35,9 @@ public class RequestApproval implements Serializable {
     @JoinColumn(name = "approver_id")
     private User approver;
 
-    public RequestApproval() {
+    @PrePersist
+    public void onPrePersist() {
+        this.approvalStatus = ApprovalStatus.PENDING;
         this.approvalDate = LocalDateTime.now();
     }
 
@@ -40,53 +47,5 @@ public class RequestApproval implements Serializable {
         this.accessRequest = accessRequest;
         this.approver = approver;
         this.comments = comments;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public ApprovalStatus getApprovalStatus() {
-        return approvalStatus;
-    }
-
-    public void setApprovalStatus(ApprovalStatus approvalStatus) {
-        this.approvalStatus = approvalStatus;
-    }
-
-    public LocalDateTime getApprovalDate() {
-        return approvalDate;
-    }
-
-    public void setApprovalDate(LocalDateTime approvalDate) {
-        this.approvalDate = approvalDate;
-    }
-
-    public String getComments() {
-        return comments;
-    }
-
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
-
-    public AccessRequest getAccessRequest() {
-        return accessRequest;
-    }
-
-    public void setAccessRequest(AccessRequest accessRequest) {
-        this.accessRequest = accessRequest;
-    }
-
-    public User getApprover() {
-        return approver;
-    }
-
-    public void setApprover(User approver) {
-        this.approver = approver;
     }
 }
