@@ -119,7 +119,7 @@ public class EquipmentController {
             @RequestParam(name = "availabilityStatus", required = false) String status,
 
             @Parameter(description = "Optional laboratory ID to filter")
-            @RequestParam(name = "laboratoryId", required = false) Long labId,
+            @RequestParam(name = "laboratoryId",  required = false) Long labId,
 
             @Parameter(description = "Pagination parameters (page, size, sort)")
             Pageable pageable
