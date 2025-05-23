@@ -43,7 +43,7 @@ public class EquipmentController {
     )
     public ResponseEntity<List<EquipmentDTO>> getAllEquipment(
             @Parameter(description = "Optional laboratory ID to filter equipment")
-            @RequestParam(required = false) Long laboratoryId) {
+            @RequestParam(name = "laboratoryId", required = false) Long laboratoryId) {
         logger.info("Fetching all equipments");
         List<EquipmentDTO> equipments = equipmentService.getAllEquipments(laboratoryId);
         return ResponseEntity.ok(equipments);
@@ -113,13 +113,13 @@ public class EquipmentController {
     )
     public ResponseEntity<?> searchEquipment(
             @Parameter(description = "Optional name to search (partial match)")
-            @RequestParam(required = false) String name,
+            @RequestParam(name = "name", required = false) String name,
 
             @Parameter(description = "Optional availability status (e.g., AVAILABLE, IN_USE)")
-            @RequestParam(required = false) String status,
+            @RequestParam(name = "availabilityStatus", required = false) String status,
 
             @Parameter(description = "Optional laboratory ID to filter")
-            @RequestParam(required = false) Long labId,
+            @RequestParam(name = "laboratoryId",  required = false) Long labId,
 
             @Parameter(description = "Pagination parameters (page, size, sort)")
             Pageable pageable

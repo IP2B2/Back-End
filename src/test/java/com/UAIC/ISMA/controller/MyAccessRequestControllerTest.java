@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,12 +41,15 @@ class MyAccessRequestControllerTest {
         dto = new AccessRequestDTO();
         dto.setId(1L);
         dto.setUserId(10L);
+        dto.setEquipmentId(20L);
+        dto.setRequestDate(LocalDateTime.now());
+        dto.setProposalFile("proposal.pdf");
 
         when(userDetails.getUsername()).thenReturn("testuser");
     }
 
     @Test
-    void testGetMyAccessRequests_returnsFilteredList() {
+    void shouldReturnFilteredAccessRequestsForAuthenticatedUser() {
         when(userService.findIdByUsername("testuser")).thenReturn(10L);
         when(accessRequestService.findByUserWithFilters(eq(10L), any(), any(), anyInt(), anyInt()))
                 .thenReturn(List.of(dto));
@@ -52,13 +57,14 @@ class MyAccessRequestControllerTest {
         ResponseEntity<List<AccessRequestDTO>> response = controller.getMyAccessRequests(
                 userDetails, null, null, 0, 10);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertEquals(dto.getId(), response.getBody().get(0).getId());
     }
 
     @Test
-    void testGetMyAccessRequests_userNotFound() {
+    void shouldThrowWhenUserNotFound() {
         when(userService.findIdByUsername("testuser"))
                 .thenThrow(new UserNotFoundException("User not found"));
 

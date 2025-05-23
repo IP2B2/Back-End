@@ -14,6 +14,8 @@ import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.EquipmentRepository;
 import com.UAIC.ISMA.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class AccessRequestService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AccessRequestService.class);
+    public static final int DEFAULT_PAGE_SIZE = 10;
 
     private final AccessRequestRepository accessRequestRepository;
     private final UserRepository userRepository;
@@ -49,6 +54,7 @@ public class AccessRequestService {
     }
 
     public List<AccessRequestDTO> findAll() {
+        logger.info("Fetching all AccessRequests...");
         return accessRequestRepository.findAll()
                 .stream()
                 .map(AccessRequestMapper::toDTO)
@@ -56,55 +62,86 @@ public class AccessRequestService {
     }
 
     public AccessRequestDTO findById(Long id) {
+        logger.info("Fetching AccessRequest with ID={}", id);
         AccessRequest entity = accessRequestRepository.findById(id)
-                .orElseThrow(() -> new AccessRequestNotFoundException(id));
+                .orElseThrow(() -> {
+                    logger.warn("AccessRequest not found with ID={}", id);
+                    return new AccessRequestNotFoundException(id);
+                });
         return AccessRequestMapper.toDTO(entity);
     }
 
     public AccessRequestDTO create(AccessRequestDTO dto) {
+        logger.info("Creating AccessRequest for userId={} and equipmentId={}", dto.getUserId(), dto.getEquipmentId());
         AccessRequest entity = AccessRequestMapper.toEntity(dto);
 
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(dto.getUserId()));
+                .orElseThrow(() -> {
+                    logger.warn("User not found with ID={}", dto.getUserId());
+                    return new UserNotFoundException(dto.getUserId());
+                });
+
         Equipment equipment = equipmentRepository.findById(dto.getEquipmentId())
-                .orElseThrow(() -> new EquipmentNotFoundException(dto.getEquipmentId()));
+                .orElseThrow(() -> {
+                    logger.warn("Equipment not found with ID={}", dto.getEquipmentId());
+                    return new EquipmentNotFoundException(dto.getEquipmentId());
+                });
 
-        entity.setUser(user);
-        entity.setEquipment(equipment);
-
-        return AccessRequestMapper.toDTO(accessRequestRepository.save(entity));
+        updateEntityFromDto(entity, dto, user, equipment);
+        AccessRequest saved = accessRequestRepository.save(entity);
+        logger.info("AccessRequest created with ID={}", saved.getId());
+        return AccessRequestMapper.toDTO(saved);
     }
 
     public AccessRequestDTO update(Long id, AccessRequestDTO dto) {
+        logger.info("Updating AccessRequest with ID={}", id);
         AccessRequest existing = accessRequestRepository.findById(id)
-                .orElseThrow(() -> new AccessRequestNotFoundException(id));
+                .orElseThrow(() -> {
+                    logger.warn("AccessRequest not found with ID={}", id);
+                    return new AccessRequestNotFoundException(id);
+                });
 
         User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(dto.getUserId()));
+                .orElseThrow(() -> {
+                    logger.warn("User not found with ID={}", dto.getUserId());
+                    return new UserNotFoundException(dto.getUserId());
+                });
+
         Equipment equipment = equipmentRepository.findById(dto.getEquipmentId())
-                .orElseThrow(() -> new EquipmentNotFoundException(dto.getEquipmentId()));
+                .orElseThrow(() -> {
+                    logger.warn("Equipment not found with ID={}", dto.getEquipmentId());
+                    return new EquipmentNotFoundException(dto.getEquipmentId());
+                });
 
-        existing.setRequestDate(dto.getRequestDate());
-        existing.setStatus(dto.getStatus());
-        existing.setRequestType(dto.getRequestType());
-        existing.setProposalFile(dto.getProposalFile());
-        existing.setExpectedReturnDate(dto.getExpectedReturnDate());
-        existing.setUser(user);
-        existing.setEquipment(equipment);
-
-        return AccessRequestMapper.toDTO(accessRequestRepository.save(existing));
+        updateEntityFromDto(existing, dto, user, equipment);
+        AccessRequest updated = accessRequestRepository.save(existing);
+        logger.info("AccessRequest with ID={} updated successfully", id);
+        return AccessRequestMapper.toDTO(updated);
     }
 
     public AccessRequestDTO updatePartial(Long id, Map<String, Object> updates) {
+        logger.info("Partially updating AccessRequest with ID={}", id);
         AccessRequest existing = accessRequestRepository.findById(id)
-                .orElseThrow(() -> new AccessRequestNotFoundException(id));
+                .orElseThrow(() -> {
+                    logger.warn("AccessRequest not found with ID={}", id);
+                    return new AccessRequestNotFoundException(id);
+                });
 
         updates.forEach((key, value) -> {
-            switch (key) {
-                case "status" -> existing.setStatus(Enum.valueOf(RequestStatus.class, value.toString()));
-                case "requestType" -> existing.setRequestType(Enum.valueOf(RequestType.class, value.toString()));
-                case "proposalFile" -> existing.setProposalFile(value.toString());
-                case "expectedReturnDate" -> existing.setExpectedReturnDate(LocalDateTime.parse(value.toString()));
+            try {
+                switch (key) {
+                    case "status" -> existing.setStatus(RequestStatus.valueOf(value.toString()));
+                    case "requestType" -> existing.setRequestType(RequestType.valueOf(value.toString()));
+                    case "proposalFile" -> existing.setProposalFile(value.toString());
+                    case "expectedReturnDate" -> existing.setExpectedReturnDate(LocalDateTime.parse(value.toString()));
+                    default -> {
+                        logger.warn("Unknown field '{}' skipped during partial update", key);
+                        throw new IllegalArgumentException("Invalid field: " + key);
+                    }
+                }
+            } catch (IllegalArgumentException ex) {
+                logger.error("Invalid value '{}' for field '{}'", value, key);
+                throw new IllegalArgumentException("Invalid value for field: " + key);
             }
         });
 
@@ -131,18 +168,40 @@ public class AccessRequestService {
 
 
     public void delete(Long id) {
+        logger.info("Deleting AccessRequest with ID={}", id);
         AccessRequest existing = accessRequestRepository.findById(id)
-                .orElseThrow(() -> new AccessRequestNotFoundException(id));
+                .orElseThrow(() -> {
+                    logger.warn("AccessRequest not found with ID={}", id);
+                    return new AccessRequestNotFoundException(id);
+                });
         accessRequestRepository.delete(existing);
+        logger.info("AccessRequest with ID={} deleted successfully", id);
     }
 
     public Page<AccessRequestDTO> filterRequests(RequestStatus status, String equipmentType, Long userId, Pageable pageable) {
+        logger.info("Filtering AccessRequests by status={}, equipmentType={}, userId={}", status, equipmentType, userId);
         return accessRequestRepository.filterAccessRequests(status, equipmentType, userId, pageable);
     }
 
     public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(userId, status, date, pageable);
+
+        // Trimiți mai departe LocalDate curat
+        Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(
+                userId, status, date, pageable
+        );
+
         return pageResult.getContent();
+    }
+
+
+    private void updateEntityFromDto(AccessRequest entity, AccessRequestDTO dto, User user, Equipment equipment) {
+        entity.setRequestDate(dto.getRequestDate());
+        entity.setStatus(dto.getStatus());
+        entity.setRequestType(dto.getRequestType());
+        entity.setProposalFile(dto.getProposalFile());
+        entity.setExpectedReturnDate(dto.getExpectedReturnDate());
+        entity.setUser(user);
+        entity.setEquipment(equipment);
     }
 }

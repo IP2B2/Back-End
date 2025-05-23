@@ -1,10 +1,10 @@
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.config.UserDetailsImpl;
+import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.entity.enums.RequestStatus;
 import com.UAIC.ISMA.entity.enums.RoleName;
-import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
 import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.AccessRequestService;
@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,7 @@ import java.util.Map;
 @Tag(name = "AccessRequests", description = "Operations related to access requests")
 public class AccessRequestController {
 
+    private static final Logger logger = LogManager.getLogger(AccessRequestController.class);
     private final AccessRequestService accessRequestService;
 
     public AccessRequestController(AccessRequestService accessRequestService) {
@@ -36,8 +39,9 @@ public class AccessRequestController {
     }
 
     @Operation(summary = "Get all access requests", description = "Returns a list of all access requests")
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<AccessRequestDTO>> getAllAccessRequests() {
+        logger.info("Fetching all access requests");
         List<AccessRequestDTO> accessRequests = accessRequestService.findAll();
         return ResponseEntity.ok(accessRequests);
     }
@@ -45,8 +49,8 @@ public class AccessRequestController {
     @Operation(summary = "Get access request by ID", description = "Returns a single access request by its unique ID")
     @GetMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> getAccessRequestById(
-            @Parameter(description = "Access request ID")
-            @PathVariable Long id) {
+            @Parameter(description = "Access request ID") @PathVariable Long id) {
+        logger.info("Fetching access request with ID {}", id);
         AccessRequestDTO accessRequestDTO = accessRequestService.findById(id);
         return ResponseEntity.ok(accessRequestDTO);
     }
@@ -54,30 +58,30 @@ public class AccessRequestController {
     @Operation(summary = "Create a new access request", description = "Creates a new access request with the provided details")
     @PostMapping
     public ResponseEntity<AccessRequestDTO> createAccessRequest(
-            @Parameter(description = "Access request data to create")
-            @Valid @RequestBody AccessRequestDTO dto) {
+            @Parameter(description = "Access request data to create") @Valid @RequestBody AccessRequestDTO dto) {
+        logger.info("Creating new access request for user {}", dto.getUserId());
         AccessRequestDTO createdRequest = accessRequestService.create(dto);
+        logger.debug("Created access request with ID {}", createdRequest.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRequest);
     }
 
     @Operation(summary = "Update an existing access request", description = "Updates the access request with the specified ID")
     @PutMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updateAccessRequest(
-            @Parameter(description = "Access request ID")
-            @PathVariable Long id,
-            @Parameter(description = "Updated access request data")
-            @Valid @RequestBody AccessRequestDTO dto) {
+            @Parameter(description = "Access request ID") @PathVariable Long id,
+            @Parameter(description = "Updated access request data") @Valid @RequestBody AccessRequestDTO dto) {
+        logger.info("Updating access request with ID {}", id);
         AccessRequestDTO updatedRequest = accessRequestService.update(id, dto);
+        logger.debug("Updated access request with ID {}", updatedRequest.getId());
         return ResponseEntity.ok(updatedRequest);
     }
 
     @Operation(summary = "Partially update an access request", description = "Updates only the specified fields of an access request")
     @PatchMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updatePartialAccessRequest(
-            @Parameter(description = "Access request ID")
-            @PathVariable Long id,
-            @Parameter(description = "Fields to update")
-            @RequestBody Map<String, Object> updates) {
+            @Parameter(description = "Access request ID") @PathVariable Long id,
+            @Parameter(description = "Fields to update") @RequestBody Map<String, Object> updates) {
+        logger.info("Partially updating access request with ID {}", id);
         AccessRequestDTO updatedRequest = accessRequestService.updatePartial(id, updates);
         return ResponseEntity.ok(updatedRequest);
     }
@@ -85,9 +89,10 @@ public class AccessRequestController {
     @Operation(summary = "Delete an access request", description = "Deletes the access request with the specified ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccessRequest(
-            @Parameter(description = "Access request ID")
-            @PathVariable Long id) {
+            @Parameter(description = "Access request ID") @PathVariable Long id) {
+        logger.info("Deleting access request with ID {}", id);
         accessRequestService.delete(id);
+        logger.info("Deleted access request with ID {}", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -100,7 +105,7 @@ public class AccessRequestController {
 
 
     @Operation(summary = "Filter access requests", description = "Filter by status, equipment type, userId. Paginated.")
-    @GetMapping("/filter")
+    @GetMapping("/search")
     public ResponseEntity<Page<AccessRequestDTO>> filterAccessRequests(
             @RequestParam(required = false) RequestStatus status,
             @RequestParam(required = false) String equipmentType,
@@ -117,18 +122,29 @@ public class AccessRequestController {
         }
 
         Pageable pageable = PageRequest.of(page, size);
+        logger.info("Searching access requests with filters: status={}, equipmentType={}, userId={}", status, equipmentType, userId);
         Page<AccessRequestDTO> results = accessRequestService.filterRequests(status, equipmentType, userId, pageable);
 
+        logger.debug("Found {} access requests", results.getTotalElements());
         return ResponseEntity.ok(results);
     }
 
+
     @ExceptionHandler(AccessRequestNotFoundException.class)
     public ResponseEntity<String> handleAccessRequestNotFoundException(AccessRequestNotFoundException ex) {
+        logger.warn("AccessRequestNotFoundException: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
+        logger.warn("UserNotFoundException: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        logger.error("Unexpected error: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
     }
 }
