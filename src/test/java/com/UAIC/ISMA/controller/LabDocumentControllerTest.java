@@ -1,21 +1,16 @@
-package com.UAIC.ISMA.service;
+package com.UAIC.ISMA.controller;
 
-import com.UAIC.ISMA.controller.LabDocumentController;
-import com.UAIC.ISMA.entity.LabDocument;
-import com.UAIC.ISMA.entity.Laboratory;
 import com.UAIC.ISMA.dto.LabDocumentDTO;
-import com.UAIC.ISMA.exception.LabDocumentNotFoundException;
-import com.UAIC.ISMA.exception.NotificationNotFoundException;
-import com.UAIC.ISMA.repository.LabDocumentRepository;
+import com.UAIC.ISMA.service.LabDocumentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
+import org.mockito.*;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,149 +19,92 @@ import static org.mockito.Mockito.*;
 class LabDocumentControllerTest {
 
  @Mock
- private LabDocumentRepository labDocumentRepository;
-
- @Mock
- private LabDocumentService labDocumentService;
+ private LabDocumentService service;
 
  @InjectMocks
- private LabDocumentController labDocumentController;
+ private LabDocumentController controller;
 
-
- private LabDocument labDocument;
- private LabDocumentDTO labDocumentDTO;
- private Laboratory lab;
+ private LabDocumentDTO sampleDTO;
 
  @BeforeEach
  void setUp() {
   MockitoAnnotations.openMocks(this);
 
-  lab = new Laboratory();
-  lab.setId(1L);
-
-  labDocument = new LabDocument();
-  labDocument.setId(1L);
-  labDocument.setTitle("Test");
-  labDocument.setDescription("Desc");
-  labDocument.setFilePath("test/path.pdf");
-  labDocument.setUpdatedAt(LocalDateTime.now());
-  labDocument.setLaboratory(lab);
-
-  labDocumentDTO = new LabDocumentDTO();
-  labDocumentDTO.setId(1L);
-  labDocumentDTO.setTitle("Test");
-  labDocumentDTO.setDescription("Desc");
-  labDocumentDTO.setFilePath("test/path.pdf");
-  labDocumentDTO.setUpdatedAt(labDocument.getUpdatedAt());
-  labDocumentDTO.setLaboratoryId(1L);
+  sampleDTO = new LabDocumentDTO();
+  sampleDTO.setId(1L);
+  sampleDTO.setFilename("document.pdf");
+  sampleDTO.setVersion("v1.0");
+  sampleDTO.setFileType("application/pdf");
+  sampleDTO.setFilePath("uploads/document.pdf");
+  sampleDTO.setLabId(1L);
  }
 
  @Test
- void testGetAllLabDocuments_Succes(){
-  LabDocumentDTO labDocumentDTO2 = new LabDocumentDTO();
-  labDocumentDTO2.setId(1L);
-  labDocumentDTO2.setTitle("Test");
-  labDocumentDTO2.setDescription("Desc");
-  labDocumentDTO2.setFilePath("test/path.pdf");
-  labDocumentDTO2.setUpdatedAt(labDocument.getUpdatedAt());
-  labDocumentDTO2.setLaboratoryId(1L);
+ void testGetDocumentsByLab() {
+  when(service.getDocumentsByLab("1")).thenReturn(List.of(sampleDTO));
 
-  when(labDocumentService.getAllDocuments()).thenReturn(List.of(labDocumentDTO, labDocumentDTO2));
+  ResponseEntity<List<LabDocumentDTO>> response = controller.getDocumentsByLab("1");
 
-  ResponseEntity<List<LabDocumentDTO>> response = labDocumentController.getAllLabDocs(1L);
-
-  assertNotNull(response);
-  assertEquals(HttpStatus.OK, response.getStatusCode());
-  assertEquals(2, response.getBody().size());
+  assertEquals(200, response.getStatusCodeValue());
+  assertEquals(1, response.getBody().size());
+  assertEquals("document.pdf", response.getBody().get(0).getFilename());
  }
 
  @Test
- void testGetLabDocumentsById_Success() {
-  // Arrange
-  when(labDocumentService.findById(1L)).thenReturn(labDocumentDTO);
+ void testDownloadDocument() {
+  Resource resource = new ByteArrayResource("test".getBytes());
 
-  // Act
-  ResponseEntity<LabDocumentDTO> response = labDocumentController.getLabDocumentsById(1L);
+  when(service.downloadDocument(1L)).thenReturn(ResponseEntity.ok(resource));
 
-  // Assert
-  assertNotNull(response);
-  assertEquals(HttpStatus.OK, response.getStatusCode());
+  ResponseEntity<Resource> response = controller.downloadDocument(1L);
+
+  assertEquals(200, response.getStatusCodeValue());
+  assertNotNull(response.getBody());
  }
 
  @Test
- void testGetDocsByLabId_LabDocumentNotFound() {
-  // Arrange
-  when(labDocumentService.getDocumentsByLabId(1L))
-          .thenThrow(new LabDocumentNotFoundException(1L));
+ void testUploadLabDocument() {
+  MultipartFile mockFile = new MockMultipartFile("file", "test.pdf", "application/pdf", "data".getBytes());
 
-  // Act & Assert
-  assertThrows(LabDocumentNotFoundException.class, () -> labDocumentController.getDocsByLabId(1L));
+  when(service.storeDocument(any(), eq("1"), isNull(), eq("v1.0"))).thenReturn(sampleDTO);
+
+  ResponseEntity<LabDocumentDTO> response = controller.uploadLabDocument("1", mockFile, "v1.0");
+
+  assertEquals(200, response.getStatusCodeValue());
+  assertEquals("document.pdf", response.getBody().getFilename());
  }
 
  @Test
- void testCreateLabDocument_Success() {
-  // Arrange
-  when(labDocumentService.createDocument(labDocumentDTO)).thenReturn(labDocumentDTO);
+ void testUploadRequestDocument() {
+  MultipartFile mockFile = new MockMultipartFile("file", "test.pdf", "application/pdf", "data".getBytes());
 
-  // Act
-  LabDocumentDTO result = labDocumentController.createLabDocument(labDocumentDTO);
+  when(service.storeDocument(any(), isNull(), eq("REQ123"), isNull())).thenReturn(sampleDTO);
 
-  // Assert
-  assertNotNull(result);
-  assertEquals(labDocumentDTO.getId(), result.getId());
-  assertEquals(labDocumentDTO.getTitle(), result.getTitle());
+  ResponseEntity<LabDocumentDTO> response = controller.uploadRequestDocument("REQ123", mockFile);
+
+  assertEquals(200, response.getStatusCodeValue());
+  assertEquals("document.pdf", response.getBody().getFilename());
  }
 
  @Test
- void testUpdateLabDocument_Success() {
-  // Arrange
-  LabDocumentDTO updatedDTO = new LabDocumentDTO();
-  updatedDTO.setId(1L);
-  updatedDTO.setTitle("Updated Title");
-  updatedDTO.setDescription("Updated Description");
-  updatedDTO.setFilePath("updated/path.pdf");
-  updatedDTO.setLaboratoryId(1L);
+ void testDeleteDocument() {
+  doNothing().when(service).deleteDocument(1L);
 
-  when(labDocumentService.updateLabDocument(1L, updatedDTO)).thenReturn(updatedDTO);
+  ResponseEntity<Void> response = controller.deleteDocument(1L);
 
-  // Act
-  ResponseEntity<LabDocumentDTO> response = labDocumentController.updateLabDoc(1L, updatedDTO);
-
-  // Assert
-  assertNotNull(response);
-  assertEquals(HttpStatus.OK, response.getStatusCode());
-  assertEquals("Updated Title", response.getBody().getTitle());
-  assertEquals("Updated Description", response.getBody().getDescription());
+  assertEquals(200, response.getStatusCodeValue());
+  verify(service, times(1)).deleteDocument(1L);
  }
 
  @Test
- void testUpdateLabDocuments_LabDocumentsNotFound() {
-  // Arrange
-  when(labDocumentService.updateLabDocument(1L, labDocumentDTO)).thenThrow(LabDocumentNotFoundException.class);
+ void testUpdateDocument() {
+  MultipartFile newFile = new MockMultipartFile("file", "updated.pdf", "application/pdf", "data".getBytes());
 
-  // Act & Assert
-  assertThrows(LabDocumentNotFoundException.class, () -> labDocumentController.updateLabDoc(1L, labDocumentDTO));
- }
+  when(service.updateDocument(eq(1L), any(), eq("v2.0"))).thenReturn(sampleDTO);
 
- @Test
- void testDeleteNotification_Success() {
-  // Arrange
-  doNothing().when(labDocumentService).deleteLabDocument(1L);
+  ResponseEntity<LabDocumentDTO> response = controller.updateDocument(1L, newFile, "v2.0");
 
-  // Act
-  ResponseEntity<Void> response = labDocumentController.deleteLabDoc(1L);
-
-  // Assert
-  assertNotNull(response);
-  assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
- }
-
- @Test
- void testDeleteNotification_NotificationNotFound() {
-  // Arrange
-  doThrow(NotificationNotFoundException.class).when(labDocumentService).deleteLabDocument(1L);
-
-  // Act and Assert
-  assertThrows(NotificationNotFoundException.class, () -> labDocumentController.deleteLabDoc(1L));
+  assertEquals(200, response.getStatusCodeValue());
+  assertEquals("document.pdf", response.getBody().getFilename());
  }
 }

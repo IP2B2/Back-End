@@ -1,110 +1,77 @@
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dto.LabDocumentDTO;
-import com.UAIC.ISMA.exception.NotificationNotFoundException;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.LabDocumentService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/labDocs")
-@Tag(name = "LabDocument", description = "Operations related to labDocuments")
+@RequestMapping("/labdocuments")
 public class LabDocumentController {
-    private final LabDocumentService labDocumentService;
 
-    public LabDocumentController(LabDocumentService labDocumentService) {
-        this.labDocumentService = labDocumentService;
+    private static final Logger logger = LoggerFactory.getLogger(LabDocumentController.class);
+    private final LabDocumentService service;
+
+    public LabDocumentController(LabDocumentService service) {
+        this.service = service;
     }
 
-    @GetMapping
-    @Operation(
-            summary = "Get all labDocuments",
-            description = "Returns a list of all the labDocuments"
-    )
-    public ResponseEntity<List<LabDocumentDTO>> getAllLabDocs(@Parameter(description = "Optional user ID to filter labDocuments")
-                                                              @RequestParam(required = false) Long labId) {
-        List<LabDocumentDTO> labDocumentList = labDocumentService.getAllDocuments();
-        return ResponseEntity.ok(labDocumentList);
+    @Operation(summary = "Listare documente laborator", description = "Returnează toate documentele active (nearchivate) pentru laboratorul specificat")
+    @GetMapping("/labs/{labId}")
+    public ResponseEntity<List<LabDocumentDTO>> getDocumentsByLab(@PathVariable String labId) {
+        logger.info("GET /labdocuments/labs/{} - listare documente", labId);
+        return ResponseEntity.ok(service.getDocumentsByLab(labId));
     }
 
-    @GetMapping("/{id}")
-    @Operation(
-            summary = "Get labDocument by ID",
-            description = "Returns a single labDocument by its unique ID."
-    )
-    public ResponseEntity<LabDocumentDTO> getLabDocumentsById(
-            @Parameter(description = "LabDocument ID")
-            @PathVariable Long id) {
-        LabDocumentDTO labDocumentDTO = labDocumentService.findById(id);
-        return ResponseEntity.ok(labDocumentDTO);
+    @Operation(summary = "Descărcare document", description = "Descarcă documentul cu ID-ul specificat")
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Resource> downloadDocument(@PathVariable Long id) {
+        logger.info("GET /labdocuments/{}/download - descărcare document", id);
+        return service.downloadDocument(id);
     }
 
-
-    @GetMapping("/laboratory/{laboratoryId}")
-    @Operation(
-            summary = "Get labDocument by labID",
-            description = "Returns a list of labDocument from a laboratory with a specific ID."
-    )
-    public ResponseEntity<List<LabDocumentDTO>> getDocsByLabId(
-            @Parameter(description = "Laboratory ID")
-            @PathVariable("laboratoryId") Long laboratoryId) {
-        List<LabDocumentDTO> labDocumentDTOList = labDocumentService.getDocumentsByLabId(laboratoryId);
-        return ResponseEntity.ok(labDocumentDTOList);
+    @Operation(summary = "Upload document oficial laborator", description = "Permite unui administrator sau coordonator să încarce un document oficial în laboratorul specificat")
+    @PostMapping("/labs/{labId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('COORDINATOR')")
+    public ResponseEntity<LabDocumentDTO> uploadLabDocument(@PathVariable String labId,
+                                                            @RequestParam("file") MultipartFile file,
+                                                            @RequestParam(required = false) String version) {
+        logger.info("POST /labdocuments/labs/{} - upload fișier: {}", labId, file.getOriginalFilename());
+        return ResponseEntity.ok(service.storeDocument(file, labId, null, version));
     }
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('Coordinator')")
-    @Operation(
-            summary = "Create a new labDocument",
-            description = "Creates a new labDocument with the provided details."
-    )
-    public LabDocumentDTO createLabDocument(@Parameter(description = "LabDocument data to create")
-                                            @RequestBody LabDocumentDTO labDocumentDTO) {
-        return labDocumentService.createDocument(labDocumentDTO);
+    @Operation(summary = "Upload document pentru cerere", description = "Permite unui utilizator să atașeze un document la o cerere de acces")
+    @PostMapping("/requests/{requestId}")
+    public ResponseEntity<LabDocumentDTO> uploadRequestDocument(@PathVariable String requestId,
+                                                                @RequestParam("file") MultipartFile file) {
+        logger.info("POST /labdocuments/requests/{} - upload fișier cerere: {}", requestId, file.getOriginalFilename());
+        return ResponseEntity.ok(service.storeDocument(file, null, requestId, null));
     }
 
-
-    @PutMapping("/{id}")
-    @Operation(
-            summary = "Update an existing labDocument",
-            description = "Updates the labDocument with the specified ID."
-    )
-    public ResponseEntity<LabDocumentDTO> updateLabDoc(
-            @Parameter(description = "LabDocument ID")
-            @PathVariable Long id,
-            @Parameter(description = "Updated labDocument data")
-            @RequestBody LabDocumentDTO labDocumentDTO) {
-        LabDocumentDTO update = labDocumentService.updateLabDocument(id, labDocumentDTO);
-        return ResponseEntity.ok(update);
-    }
-
+    @Operation(summary = "Șterge document", description = "Permite unui administrator sau coordonator să șteargă un document după ID")
     @DeleteMapping("/{id}")
-    @Operation(
-            summary = "Delete a labDocument",
-            description = "Deletes the labDocument with the specified ID."
-    )
-    public ResponseEntity<Void> deleteLabDoc(
-            @Parameter(description = "LabDocument ID")
-            @PathVariable Long id) {
-        labDocumentService.deleteLabDocument(id);
-        return ResponseEntity.noContent().build();
+    @PreAuthorize("hasRole('ADMIN') or hasRole('COORDINATOR')")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
+        logger.info("DELETE /labdocuments/{} - ștergere document", id);
+        service.deleteDocument(id);
+        return ResponseEntity.ok().build();
     }
 
-    @ExceptionHandler(NotificationNotFoundException.class)
-    public ResponseEntity<String> handleNotificationNotFoundException(NotificationNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    @Operation(summary = "Actualizare document", description = "Înlocuiește documentul cu un fișier nou și marchează versiunea veche ca arhivată")
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('COORDINATOR')")
+    public ResponseEntity<LabDocumentDTO> updateDocument(@PathVariable Long id,
+                                                         @RequestParam("file") MultipartFile file,
+                                                         @RequestParam(required = false) String version) {
+        logger.info("PUT /labdocuments/{} - actualizare document cu: {}", id, file.getOriginalFilename());
+        return ResponseEntity.ok(service.updateDocument(id, file, version));
     }
 }

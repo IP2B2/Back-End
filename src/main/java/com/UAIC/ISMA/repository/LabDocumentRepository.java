@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface LabDocumentRepository extends JpaRepository<LabDocument, Long> {
-    List<LabDocument> findByLaboratoryId(Long laboratoryId);
+
+    List<LabDocument> findByLab_IdAndArchivedFalse(Long labId);
 }

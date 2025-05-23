@@ -9,3 +9,4 @@ public class IsmaApplication {
         SpringApplication.run(IsmaApplication.class, args);
     }
 }
+//schimb parola inainte de push
