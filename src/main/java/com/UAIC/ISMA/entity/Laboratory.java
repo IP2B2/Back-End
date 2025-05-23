@@ -29,4 +29,9 @@ public class Laboratory implements Serializable {
     @OneToMany(mappedBy = "laboratory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LabDocument> labDocuments;
 
+    public Laboratory(String labName, String description, String Location){
+        this.labName = labName;
+        this.description = description;
+        this.location = Location;
+    }
 }
