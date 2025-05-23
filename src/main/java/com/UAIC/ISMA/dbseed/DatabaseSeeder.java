@@ -82,7 +82,14 @@ public class DatabaseSeeder implements CommandLineRunner {
                 notificationRepo.save(new Notification("Cererea ta a fost înregistrată.", student));
             }
 
-            labDocRepo.save(new LabDocument("Regulament Lab A", "Norme de siguranță", "/docs/lab-a.pdf", lab1));
+            labDocRepo.save(LabDocument.builder()
+                    .filename("Regulament Lab A")
+                    .fileType("application/pdf")
+                    .version("v1.0")
+                    .filePath("/docs/lab-a.pdf")
+                    .lab(lab1)
+                    .build());
+
         }
     }
 
