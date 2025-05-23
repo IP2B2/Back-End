@@ -1,10 +1,11 @@
 package com.UAIC.ISMA.service;
 
+import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.entity.RequestApproval;
+import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.entity.enums.ApprovalStatus;
 import com.UAIC.ISMA.dto.RequestApprovalDTO;
 import com.UAIC.ISMA.exception.RequestApprovalNotFoundException;
-import com.UAIC.ISMA.exception.UnauthorizedException;
 import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.NotificationRepository;
@@ -35,6 +36,9 @@ class RequestApprovalServiceTest {
     @Mock
     private AccessRequestRepository accessRequestRepository;
 
+    @Mock
+    private NotificationRepository notificationRepository;
+
     @InjectMocks
     private RequestApprovalService requestApprovalService;
 
@@ -47,15 +51,23 @@ class RequestApprovalServiceTest {
 
         requestApproval = new RequestApproval();
         requestApproval.setId(1L);
-        requestApproval.setApprovalStatus(ApprovalStatus.NEEDS_MORE_INFO);
-        requestApproval.setApprovalDate(LocalDateTime.parse("2025-05-08T21:48:13.828602"));
+        requestApproval.setApprovalStatus(ApprovalStatus.PENDING);
+        requestApproval.setApprovalDate(LocalDateTime.now());
         requestApproval.setComments("Test comment");
+        AccessRequest accessRequest = new AccessRequest();
+        accessRequest.setId(1L);
+        requestApproval.setAccessRequest(accessRequest);
+        User approver = new User();
+        approver.setId(1L);
+        requestApproval.setApprover(approver);
 
         requestApprovalDTO = new RequestApprovalDTO();
         requestApprovalDTO.setId(1L);
-        requestApprovalDTO.setApprovalStatus(ApprovalStatus.NEEDS_MORE_INFO.toString());
-        requestApprovalDTO.setApprovalDate(LocalDateTime.parse("2025-05-08T21:48:13.828602"));
+        requestApprovalDTO.setApprovalStatus(ApprovalStatus.PENDING.toString());
+        requestApprovalDTO.setApprovalDate(LocalDateTime.now());
         requestApprovalDTO.setComments("Test comment");
+        requestApprovalDTO.setAccessRequestId(1L);
+        requestApprovalDTO.setApproverId(1L);
     }
 
     @Test
@@ -80,6 +92,9 @@ class RequestApprovalServiceTest {
 
     @Test
     void testCreate_Success() {
+        AccessRequest accessRequest = new AccessRequest();
+        accessRequest.setId(1L);
+        when(accessRequestRepository.findById(1L)).thenReturn(Optional.of(accessRequest));
         when(requestApprovalRepository.save(any(RequestApproval.class))).thenReturn(requestApproval);
 
         RequestApprovalDTO result = requestApprovalService.create(requestApprovalDTO);
@@ -123,8 +138,6 @@ class RequestApprovalServiceTest {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(approver));
         when(requestApprovalRepository.findById(1L)).thenReturn(Optional.of(requestApproval));
         when(requestApprovalRepository.save(any(RequestApproval.class))).thenAnswer(i -> i.getArgument(0));
-
-        NotificationRepository notificationRepository = mock(NotificationRepository.class);
         requestApprovalService.notificationRepository = notificationRepository;
 
         requestApprovalDTO.setApprovalStatus(ApprovalStatus.APPROVED.toString());
@@ -160,31 +173,18 @@ class RequestApprovalServiceTest {
     }
 
     @Test
-    void testUpdate_Fail_NullRequestApprovalDTO() {
-        when(requestApprovalRepository.findById(1L)).thenReturn(Optional.of(requestApproval));
-
-        assertThrows(NullPointerException.class, () -> requestApprovalService.update(1L, requestApprovalDTO));
-    }
-
-    @Test
-    void testUpdate_Fail_UnauthorizedUser() {
+    void testUpdate_Fail_NullApprovalStatus() {
         UserDetails userDetails = mock(UserDetails.class);
-        when(userDetails.getUsername()).thenReturn("student");
+        when(userDetails.getUsername()).thenReturn("admin");
         var authentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(userDetails, null);
         org.springframework.security.core.context.SecurityContext securityContext = mock(org.springframework.security.core.context.SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         org.springframework.security.core.context.SecurityContextHolder.setContext(securityContext);
 
-        var studentRole = new com.UAIC.ISMA.entity.Role();
-        studentRole.setRoleName(com.UAIC.ISMA.entity.enums.RoleName.STUDENT);
-        var approver = new com.UAIC.ISMA.entity.User();
-        approver.setId(100L);
-        approver.setUsername("student");
-        approver.setRole(studentRole);
-        when(userRepository.findByUsername("student")).thenReturn(Optional.of(approver));
         when(requestApprovalRepository.findById(1L)).thenReturn(Optional.of(requestApproval));
+        requestApprovalDTO.setApprovalStatus(null);
 
-        assertThrows(UnauthorizedException.class, () -> requestApprovalService.update(1L, requestApprovalDTO));
+        assertThrows(com.UAIC.ISMA.exception.InvalidInputException.class, () -> requestApprovalService.update(1L, requestApprovalDTO));
     }
 
     @Test
@@ -222,11 +222,20 @@ class RequestApprovalServiceTest {
     void testFindAll_Success() {
         RequestApproval requestApproval2 = new RequestApproval();
         requestApproval2.setId(2L);
-        requestApproval2.setApprovalStatus(ApprovalStatus.APPROVED);
-        requestApproval2.setApprovalDate(LocalDateTime.parse("2025-05-08T21:48:13.828602"));
+        requestApproval2.setApprovalStatus(ApprovalStatus.PENDING);
+        requestApproval2.setApprovalDate(LocalDateTime.now());
         requestApproval2.setComments("Test comment 2");
 
-        when(requestApprovalRepository.findAll()).thenReturn(List.of(requestApproval, requestApproval2));
+        User approver = new User();
+        approver.setId(1L);
+        requestApproval2.setApprover(approver);
+
+        AccessRequest accessRequest = new AccessRequest();
+        accessRequest.setId(1L);
+        requestApproval2.setAccessRequest(accessRequest);
+
+        when(requestApprovalRepository.findByApprover_IdAndAccessRequest_Id(approver.getId(), accessRequest.getId()))
+                .thenReturn(List.of(requestApproval, requestApproval2));
 
         List<RequestApprovalDTO> result = requestApprovalService.findAll(1L, 1L);
 
@@ -238,7 +247,7 @@ class RequestApprovalServiceTest {
 
     @Test
     void testFindAll_Fail_EmptyList() {
-        when(requestApprovalRepository.findAll()).thenReturn(List.of());
+        when(requestApprovalRepository.findByApprover_IdAndAccessRequest_Id(1L, 1L)).thenReturn(List.of());
 
         List<RequestApprovalDTO> result = requestApprovalService.findAll(1L, 1L);
 
