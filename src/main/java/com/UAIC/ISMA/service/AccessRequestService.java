@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -72,14 +74,14 @@ public class AccessRequestService {
     }
 
     public AccessRequestDTO create(AccessRequestDTO dto) {
-        logger.info("Creating AccessRequest for userId={} and equipmentId={}", dto.getUserId(), dto.getEquipmentId());
-        AccessRequest entity = AccessRequestMapper.toEntity(dto);
+        String username = ((UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal()).getUsername();
 
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> {
-                    logger.warn("User not found with ID={}", dto.getUserId());
-                    return new UserNotFoundException(dto.getUserId());
-                });
+        var user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        logger.info("Creating AccessRequest for userId={} and equipmentId={}", user.getId(), dto.getEquipmentId());
+        AccessRequest entity = AccessRequestMapper.toEntity(dto);
 
         Equipment equipment = equipmentRepository.findById(dto.getEquipmentId())
                 .orElseThrow(() -> {
