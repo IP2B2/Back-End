@@ -188,20 +188,24 @@ public class AccessRequestService {
     public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        LocalDateTime dateStart = null;
-        LocalDateTime dateEnd = null;
-
-        if (date != null) {
-            dateStart = date.atStartOfDay(); // ex: 2025-05-29T00:00
-            dateEnd = date.plusDays(1).atStartOfDay(); // ex: 2025-05-30T00:00 (exclusive)
+        if (status == null && date == null) {
+            return accessRequestRepository.findByUserId(userId, pageable).getContent();
         }
 
-        Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(
-                userId, status, dateStart, dateEnd, pageable
-        );
+        // ✅ Dacă ambele filtre există
+        if (status != null && date != null) {
+            LocalDateTime start = date.atStartOfDay();
+            LocalDateTime end = date.plusDays(1).atStartOfDay();
+            return accessRequestRepository
+                    .findByUserIdAndStatusAndDateBetween(userId, status, start, end, pageable)
+                    .getContent();
+        }
 
-        return pageResult.getContent();
+        // 🟡 Dacă vrei și combinații parțiale (doar status, doar date) — pot adăuga metode separate
+
+        throw new UnsupportedOperationException("Combinatia de filtre partiale nu este suportata momentan.");
     }
+
 
 
 
