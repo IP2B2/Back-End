@@ -92,7 +92,9 @@
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.30</version>
+      <scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
 
