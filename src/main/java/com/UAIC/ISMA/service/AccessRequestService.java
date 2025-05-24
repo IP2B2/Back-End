@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -72,14 +74,14 @@ public class AccessRequestService {
     }
 
     public AccessRequestDTO create(AccessRequestDTO dto) {
-        logger.info("Creating AccessRequest for userId={} and equipmentId={}", dto.getUserId(), dto.getEquipmentId());
-        AccessRequest entity = AccessRequestMapper.toEntity(dto);
+        String username = ((UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal()).getUsername();
 
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> {
-                    logger.warn("User not found with ID={}", dto.getUserId());
-                    return new UserNotFoundException(dto.getUserId());
-                });
+        var user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        logger.info("Creating AccessRequest for userId={} and equipmentId={}", user.getId(), dto.getEquipmentId());
+        AccessRequest entity = AccessRequestMapper.toEntity(dto);
 
         Equipment equipment = equipmentRepository.findById(dto.getEquipmentId())
                 .orElseThrow(() -> {
@@ -186,13 +188,21 @@ public class AccessRequestService {
     public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        // Trimiți mai departe LocalDate curat
+        LocalDateTime dateStart = null;
+        LocalDateTime dateEnd = null;
+
+        if (date != null) {
+            dateStart = date.atStartOfDay(); // ex: 2025-05-29T00:00
+            dateEnd = date.plusDays(1).atStartOfDay(); // ex: 2025-05-30T00:00 (exclusive)
+        }
+
         Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(
-                userId, status, date, pageable
+                userId, status, dateStart, dateEnd, pageable
         );
 
         return pageResult.getContent();
     }
+
 
 
     private void updateEntityFromDto(AccessRequest entity, AccessRequestDTO dto, User user, Equipment equipment) {
