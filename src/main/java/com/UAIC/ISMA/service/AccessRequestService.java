@@ -39,7 +39,6 @@ public class AccessRequestService {
     private final EquipmentRepository equipmentRepository;
     private final VirtualAccessService virtualAccessService;
 
-
     @Autowired
     public AccessRequestService(
             AccessRequestRepository accessRequestRepository,

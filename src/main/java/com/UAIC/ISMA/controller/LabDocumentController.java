@@ -5,6 +5,7 @@ import com.UAIC.ISMA.service.LabDocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ public class LabDocumentController {
     private static final Logger logger = LoggerFactory.getLogger(LabDocumentController.class);
     private final LabDocumentService service;
 
+    @Autowired
     public LabDocumentController(LabDocumentService service) {
         this.service = service;
     }
