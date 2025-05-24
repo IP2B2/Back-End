@@ -33,14 +33,15 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
             Pageable pageable
     );
 
-    @Query("SELECT new com.UAIC.ISMA.dto.AccessRequestDTO( " +
+    @Query("SELECT new com.UAIC.ISMA.dto.AccessRequestDTO(" +
             "ar.id, ar.requestDate, ar.status, ar.requestType, " +
             "ar.proposalFile, ar.expectedReturnDate, " +
             "ar.user.id, ar.equipment.id) " +
             "FROM AccessRequest ar " +
             "WHERE ar.user.id = :userId " +
             "AND (:status IS NULL OR ar.status = :status) " +
-            "AND ((:dateStart IS NULL AND :dateEnd IS NULL) OR ar.requestDate BETWEEN :dateStart AND :dateEnd)")
+            "AND (:dateStart IS NULL OR ar.requestDate >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR ar.requestDate < :dateEnd)")
     Page<AccessRequestDTO> findDTOByUserWithFilters(
             @Param("userId") Long userId,
             @Param("status") RequestStatus status,
@@ -48,5 +49,6 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
             @Param("dateEnd") LocalDateTime dateEnd,
             Pageable pageable
     );
+
 
 }
