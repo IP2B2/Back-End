@@ -46,24 +46,27 @@ public class MyAccessRequestController {
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(required = false) @Parameter(description = "Page size") Integer size
     ) {
-        if (currentUser == null || currentUser.getUsername() == null) {
-            logger.error("Authenticated user is null or missing username.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated.");
+        try {
+            if (currentUser == null || currentUser.getUsername() == null) {
+                logger.error("Authenticated user is null or missing username.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated.");
+            }
+
+            int pageSize = (size != null) ? size : 10;
+            logger.info("Fetching access requests for current user: {}", currentUser.getUsername());
+
+            Long userId = userService.findIdByUsername(currentUser.getUsername());
+            List<AccessRequestDTO> results = accessRequestService.findByUserWithFilters(userId, status, date, page, pageSize);
+
+            logger.debug("Found {} access requests for user {}", results.size(), userId);
+            return ResponseEntity.ok(results);
+
+        } catch (UserNotFoundException ex) {
+            return handleUserNotFound(ex);
+        } catch (RuntimeException ex) {
+            return handleGenericError(ex);
         }
-
-        int pageSize = (size != null) ? size : 10;
-
-        logger.info("Fetching access requests for current user: {}", currentUser.getUsername());
-
-        Long userId = userService.findIdByUsername(currentUser.getUsername());
-
-        List<AccessRequestDTO> results = accessRequestService.findByUserWithFilters(userId, status, date, page, pageSize);
-
-        logger.debug("Found {} access requests for user {}", results.size(), userId);
-        return ResponseEntity.ok(results);
     }
-
-
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {

@@ -120,11 +120,15 @@ class AccessRequestControllerTest {
 
     @Test
     void testUpdateAccessRequest_ForbiddenForStudent() {
+        studentUserDetails.getUser().setRole(new Role(RoleName.STUDENT));
+
         ResponseEntity<AccessRequestDTO> response =
                 accessRequestController.updateAccessRequest(studentUserDetails, 1L, accessRequestDTO);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
+
+
 
     @Test
     void testUpdatePartialAccessRequest_Success() {

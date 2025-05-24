@@ -76,20 +76,18 @@ public class AccessRequestController {
     }
 
     @Operation(summary = "Update an existing access request", description = "Updates the access request with the specified ID")
-    @PreAuthorize("hasAnyAuthority('RESEARCHER', 'STUDENT')")
     @PutMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updateAccessRequest(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long id,
             @Valid @RequestBody AccessRequestDTO dto) {
 
+        // 🟢 Adăugăm verificarea manuală a rolului
         RoleName role = userDetails.getUser().getRole().getRoleName();
         if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
-            logger.warn("Unauthorized role tried to update access request");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        logger.info("Updating access request with ID {}", id);
         AccessRequestDTO updatedRequest = accessRequestService.update(id, dto);
         return ResponseEntity.ok(updatedRequest);
     }
