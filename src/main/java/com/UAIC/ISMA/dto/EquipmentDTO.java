@@ -30,7 +30,7 @@ public class EquipmentDTO {
     @NotNull(message = "Laboratory ID is required")
     private Long laboratoryId;
 
-    @Size(max = 255, message = "Access requirements must not exceed 255 characters")
+    @Size(max = 10000, message = "Access requirements must not exceed 10000 characters")
     private String accessRequirements;
 
     private String photo;
