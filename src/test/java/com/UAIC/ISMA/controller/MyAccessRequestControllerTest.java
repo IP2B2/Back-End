@@ -54,21 +54,27 @@ class MyAccessRequestControllerTest {
         when(accessRequestService.findByUserWithFilters(eq(10L), any(), any(), anyInt(), anyInt()))
                 .thenReturn(List.of(dto));
 
-        ResponseEntity<List<AccessRequestDTO>> response = controller.getMyAccessRequests(
-                userDetails, null, null, 0, 10);
+        ResponseEntity<?> response = controller.getMyAccessRequests(userDetails, null, null, 0, 10);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().size());
-        assertEquals(dto.getId(), response.getBody().get(0).getId());
+
+        @SuppressWarnings("unchecked")
+        List<AccessRequestDTO> body = (List<AccessRequestDTO>) response.getBody();
+
+        assertNotNull(body);
+        assertEquals(1, body.size());
+        assertEquals(dto.getId(), body.get(0).getId());
     }
 
     @Test
-    void shouldThrowWhenUserNotFound() {
+    void shouldHandleUserNotFoundGracefully() {
         when(userService.findIdByUsername("testuser"))
                 .thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () ->
-                controller.getMyAccessRequests(userDetails, null, null, 0, 10));
+        ResponseEntity<?> response = controller.getMyAccessRequests(userDetails, null, null, 0, 10);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("User not found.", response.getBody());
     }
 }
