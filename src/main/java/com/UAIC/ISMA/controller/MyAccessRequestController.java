@@ -38,7 +38,7 @@ public class MyAccessRequestController {
     @Operation(summary = "Get current user's access requests",
             description = "Filter access requests by status and date for the currently authenticated user.")
     @GetMapping
-    public ResponseEntity<List<AccessRequestDTO>> getMyAccessRequests(
+    public ResponseEntity<?> getMyAccessRequests(
             @AuthenticationPrincipal UserDetails currentUser,
             @RequestParam(required = false) @Parameter(description = "Status of access request") RequestStatus status,
             @RequestParam(required = false) @Parameter(description = "Filter by date (yyyy-MM-dd)")
@@ -46,6 +46,11 @@ public class MyAccessRequestController {
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(required = false) @Parameter(description = "Page size") Integer size
     ) {
+        if (currentUser == null || currentUser.getUsername() == null) {
+            logger.error("Authenticated user is null or missing username.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated.");
+        }
+
         int pageSize = (size != null) ? size : 10;
 
         logger.info("Fetching access requests for current user: {}", currentUser.getUsername());
@@ -57,6 +62,7 @@ public class MyAccessRequestController {
         logger.debug("Found {} access requests for user {}", results.size(), userId);
         return ResponseEntity.ok(results);
     }
+
 
 
     @ExceptionHandler(UserNotFoundException.class)
