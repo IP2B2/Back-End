@@ -58,17 +58,15 @@ class AccessRequestControllerFilterTest {
     @Test
     void testFilterAccessRequests_asStudent() {
         UserDetailsImpl student = mockPrincipal(RoleName.STUDENT, 5L);
-        Page<AccessRequestDTO> mockPage = new PageImpl<>(List.of(accessRequestDTO));
-
-        when(accessRequestService.filterRequests(any(), any(), eq(5L), any(Pageable.class))).thenReturn(mockPage);
 
         ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
                 null, null, null, 0, 10, student
         );
 
-        assertEquals(1, response.getBody().getTotalElements());
-        verify(accessRequestService).filterRequests(null, null, 5L, PageRequest.of(0, 10));
+        assertEquals(403, response.getStatusCodeValue());
+        assertNull(response.getBody()); // deoarece ai returnat status FORBIDDEN
     }
+
 
     @Test
     void testFilterAccessRequests_asAdmin() {
@@ -86,19 +84,20 @@ class AccessRequestControllerFilterTest {
     }
 
     @Test
-    void testFilterAccessRequests_asResearcher() {
+    void testFilterAccessRequests_asResearcher_shouldBeForbidden() {
         UserDetailsImpl researcher = mockPrincipal(RoleName.RESEARCHER, 200L);
-        Page<AccessRequestDTO> mockPage = new PageImpl<>(List.of(accessRequestDTO));
-
-        when(accessRequestService.filterRequests(any(), any(), eq(null), any(Pageable.class))).thenReturn(mockPage);
 
         ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
                 null, null, null, 0, 10, researcher
         );
 
-        assertEquals(1, response.getBody().getTotalElements());
-        verify(accessRequestService).filterRequests(null, null, null, PageRequest.of(0, 10));
+        assertEquals(403, response.getStatusCodeValue());
+
+        assertNull(response.getBody());
+
+        verifyNoInteractions(accessRequestService);
     }
+
 
     @Test
     void testFilterAccessRequests_asCoordinator() {

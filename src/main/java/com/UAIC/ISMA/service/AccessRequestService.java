@@ -182,8 +182,14 @@ public class AccessRequestService {
 
     public Page<AccessRequestDTO> filterRequests(RequestStatus status, String equipmentType, Long userId, Pageable pageable) {
         logger.info("Filtering AccessRequests by status={}, equipmentType={}, userId={}", status, equipmentType, userId);
+
+        if (equipmentType != null && !equipmentType.isBlank()) {
+            equipmentType = "%" + equipmentType + "%";
+        }
+
         return accessRequestRepository.filterAccessRequests(status, equipmentType, userId, pageable);
     }
+
 
     public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -192,18 +198,20 @@ public class AccessRequestService {
             return accessRequestRepository.findByUserId(userId, pageable).getContent();
         }
 
-        // ✅ Dacă ambele filtre există
-        if (status != null && date != null) {
-            LocalDateTime start = date.atStartOfDay();
-            LocalDateTime end = date.plusDays(1).atStartOfDay();
-            return accessRequestRepository
-                    .findByUserIdAndStatusAndDateBetween(userId, status, start, end, pageable)
-                    .getContent();
+        if (status != null && date == null) {
+            return accessRequestRepository.findByUserIdAndStatus(userId, status, pageable).getContent();
         }
 
-        // 🟡 Dacă vrei și combinații parțiale (doar status, doar date) — pot adăuga metode separate
+        if (status == null && date != null) {
+            LocalDateTime start = date.atStartOfDay();
+            LocalDateTime end = date.plusDays(1).atStartOfDay();
+            return accessRequestRepository.findByUserIdAndDateBetween(userId, start, end, pageable).getContent();
+        }
 
-        throw new UnsupportedOperationException("Combinatia de filtre partiale nu este suportata momentan.");
+        // ambele sunt prezente
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.plusDays(1).atStartOfDay();
+        return accessRequestRepository.findByUserIdAndStatusAndDateBetween(userId, status, start, end, pageable).getContent();
     }
 
 

@@ -94,7 +94,7 @@ public class AccessRequestController {
 
 
     @Operation(summary = "Partially update an access request", description = "Updates only the specified fields of an access request")
-    @PreAuthorize("hasAnyAuthority('RESEARCHER', 'STUDENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @PatchMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updatePartialAccessRequest(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -110,6 +110,7 @@ public class AccessRequestController {
         AccessRequestDTO updatedRequest = accessRequestService.updatePartial(id, updates);
         return ResponseEntity.ok(updatedRequest);
     }
+
 
 
     @Operation(summary = "Delete an access request", description = "Deletes the access request with the specified ID")
@@ -161,6 +162,8 @@ public class AccessRequestController {
         logger.debug("Found {} access requests", results.getTotalElements());
         return ResponseEntity.ok(results);
     }
+
+
 
     @ExceptionHandler(AccessRequestNotFoundException.class)
     public ResponseEntity<String> handleAccessRequestNotFoundException(AccessRequestNotFoundException ex) {
