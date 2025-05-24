@@ -30,6 +30,7 @@ public class Equipment implements Serializable {
     @Column(nullable = false)
     private AvailabilityStatus availabilityStatus;
 
+    @Column(length = 5000)
     private String accessRequirements;
 
     @ManyToOne
