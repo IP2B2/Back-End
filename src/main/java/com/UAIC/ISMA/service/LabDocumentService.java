@@ -8,6 +8,7 @@ import com.UAIC.ISMA.repository.LabDocumentRepository;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class LabDocumentService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LabDocumentService.class);
+    private final Logger logger ;
 
     private final LabDocumentRepository repository;
     private final LaboratoryRepository labRepo;
@@ -33,6 +34,7 @@ public class LabDocumentService {
     @Value("${upload.dir}")
     private String uploadDir;
 
+    @Autowired
     public LabDocumentService(LabDocumentRepository repository,
                               LaboratoryRepository labRepo,
                               LabDocumentsMapper mapper,
@@ -41,6 +43,7 @@ public class LabDocumentService {
         this.labRepo = labRepo;
         this.mapper = mapper;
         this.auditLogService = auditLogService;
+        this.logger=LoggerFactory.getLogger(LabDocumentService.class);
     }
 
     public List<LabDocumentDTO> getDocumentsByLab(String labId) {
