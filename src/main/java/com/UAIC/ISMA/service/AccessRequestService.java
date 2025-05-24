@@ -188,13 +188,21 @@ public class AccessRequestService {
     public List<AccessRequestDTO> findByUserWithFilters(Long userId, RequestStatus status, LocalDate date, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        // Trimiți mai departe LocalDate curat
+        LocalDateTime dateStart = null;
+        LocalDateTime dateEnd = null;
+
+        if (date != null) {
+            dateStart = date.atStartOfDay(); // ex: 2025-05-29T00:00
+            dateEnd = date.plusDays(1).atStartOfDay(); // ex: 2025-05-30T00:00 (exclusive)
+        }
+
         Page<AccessRequestDTO> pageResult = accessRequestRepository.findDTOByUserWithFilters(
-                userId, status, date, pageable
+                userId, status, dateStart, dateEnd, pageable
         );
 
         return pageResult.getContent();
     }
+
 
 
     private void updateEntityFromDto(AccessRequest entity, AccessRequestDTO dto, User user, Equipment equipment) {
