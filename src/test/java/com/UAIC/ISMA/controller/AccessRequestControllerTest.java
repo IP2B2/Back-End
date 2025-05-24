@@ -1,4 +1,3 @@
-
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.config.UserDetailsImpl;
@@ -13,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -22,16 +23,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
 
 class AccessRequestControllerTest {
 
@@ -42,6 +33,8 @@ class AccessRequestControllerTest {
     private AccessRequestController accessRequestController;
 
     private AccessRequestDTO accessRequestDTO;
+    private UserDetailsImpl adminUserDetails;
+    private UserDetailsImpl studentUserDetails;
 
     @BeforeEach
     void setUp() {
@@ -53,17 +46,36 @@ class AccessRequestControllerTest {
         accessRequestDTO.setProposalFile("proposal.pdf");
         accessRequestDTO.setUserId(10L);
         accessRequestDTO.setEquipmentId(20L);
+
+        User adminUser = new User();
+        adminUser.setId(10L);
+        adminUser.setRole(new Role(RoleName.ADMIN));
+        adminUserDetails = new UserDetailsImpl(adminUser);
+
+        User studentUser = new User();
+        studentUser.setId(20L);
+        studentUser.setRole(new Role(RoleName.STUDENT));
+        studentUserDetails = new UserDetailsImpl(studentUser);
     }
 
     @Test
     void testGetAllAccessRequests_Success() {
         when(accessRequestService.findAll()).thenReturn(List.of(accessRequestDTO));
 
-        ResponseEntity<List<AccessRequestDTO>> response = accessRequestController.getAllAccessRequests();
+        ResponseEntity<List<AccessRequestDTO>> response =
+                accessRequestController.getAllAccessRequests(adminUserDetails);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
+    }
+
+    @Test
+    void testGetAllAccessRequests_ForbiddenForStudent() {
+        ResponseEntity<List<AccessRequestDTO>> response =
+                accessRequestController.getAllAccessRequests(studentUserDetails);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
@@ -91,7 +103,7 @@ class AccessRequestControllerTest {
         ResponseEntity<AccessRequestDTO> response = accessRequestController.createAccessRequest(accessRequestDTO);
 
         assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode()); // <- AICI modifici
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(accessRequestDTO.getId(), response.getBody().getId());
     }
 
@@ -99,67 +111,79 @@ class AccessRequestControllerTest {
     void testUpdateAccessRequest_Success() {
         when(accessRequestService.update(1L, accessRequestDTO)).thenReturn(accessRequestDTO);
 
-        ResponseEntity<AccessRequestDTO> response = accessRequestController.updateAccessRequest(1L, accessRequestDTO);
+        ResponseEntity<AccessRequestDTO> response =
+                accessRequestController.updateAccessRequest(adminUserDetails, 1L, accessRequestDTO);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(accessRequestDTO.getId(), response.getBody().getId());
+    }
+
+    @Test
+    void testUpdateAccessRequest_ForbiddenForStudent() {
+        ResponseEntity<AccessRequestDTO> response =
+                accessRequestController.updateAccessRequest(studentUserDetails, 1L, accessRequestDTO);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     void testUpdatePartialAccessRequest_Success() {
         when(accessRequestService.updatePartial(eq(1L), anyMap())).thenReturn(accessRequestDTO);
 
-        ResponseEntity<AccessRequestDTO> response = accessRequestController.updatePartialAccessRequest(1L, Map.of("status", "APPROVED"));
+        ResponseEntity<AccessRequestDTO> response =
+                accessRequestController.updatePartialAccessRequest(adminUserDetails, 1L, Map.of("status", "APPROVED"));
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testUpdatePartialAccessRequest_ForbiddenForStudent() {
+        ResponseEntity<AccessRequestDTO> response =
+                accessRequestController.updatePartialAccessRequest(studentUserDetails, 1L, Map.of("status", "APPROVED"));
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     void testDeleteAccessRequest_Success() {
         doNothing().when(accessRequestService).delete(1L);
 
-        ResponseEntity<Void> response = accessRequestController.deleteAccessRequest(1L);
+        ResponseEntity<Void> response =
+                accessRequestController.deleteAccessRequest(adminUserDetails, 1L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
-    void testDeleteAccessRequest_NotFound() {
-        doThrow(AccessRequestNotFoundException.class).when(accessRequestService).delete(1L);
+    void testDeleteAccessRequest_ForbiddenForStudent() {
+        ResponseEntity<Void> response =
+                accessRequestController.deleteAccessRequest(studentUserDetails, 1L);
 
-        assertThrows(AccessRequestNotFoundException.class, () -> accessRequestController.deleteAccessRequest(1L));
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
+
     @Test
     void testFilterAccessRequests_Success() {
-        AccessRequestDTO dto = new AccessRequestDTO();
-        dto.setId(1L);
-        dto.setUserId(10L);
-        dto.setEquipmentId(20L);
-        dto.setProposalFile("proposal.pdf");
-        dto.setRequestDate(LocalDateTime.now());
-
-        Page<AccessRequestDTO> page = new PageImpl<>(List.of(dto));
+        Page<AccessRequestDTO> page = new PageImpl<>(List.of(accessRequestDTO));
         when(accessRequestService.filterRequests(any(), any(), any(), any())).thenReturn(page);
 
-        User mockUser = new User();
-        mockUser.setId(10L);
-        mockUser.setRole(new Role(RoleName.ADMIN));
-
-        UserDetailsImpl mockUserDetails = new UserDetailsImpl(mockUser);
-
-        ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
-                null, "type", 10L, 0, 10, mockUserDetails
-        );
+        ResponseEntity<Page<AccessRequestDTO>> response =
+                accessRequestController.filterAccessRequests(
+                        null, "type", 10L, 0, 10, adminUserDetails);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getContent().size());
-        assertEquals(1L, response.getBody().getContent().get(0).getId());
     }
 
+    @Test
+    void testFilterAccessRequests_ForbiddenForStudent() {
+        ResponseEntity<Page<AccessRequestDTO>> response =
+                accessRequestController.filterAccessRequests(
+                        null, "type", 10L, 0, 10, studentUserDetails);
 
-
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
 }

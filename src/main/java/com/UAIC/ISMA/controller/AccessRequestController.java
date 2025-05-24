@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.EnumSet;
 
 @RestController
 @RequestMapping("/access-requests")
@@ -40,11 +41,18 @@ public class AccessRequestController {
 
     @Operation(summary = "Get all access requests", description = "Returns a list of all access requests")
     @GetMapping
-    public ResponseEntity<List<AccessRequestDTO>> getAllAccessRequests() {
+    public ResponseEntity<List<AccessRequestDTO>> getAllAccessRequests(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         logger.info("Fetching all access requests");
         List<AccessRequestDTO> accessRequests = accessRequestService.findAll();
         return ResponseEntity.ok(accessRequests);
     }
+
 
     @Operation(summary = "Get access request by ID", description = "Returns a single access request by its unique ID")
     @GetMapping("/{id}")
@@ -68,33 +76,56 @@ public class AccessRequestController {
     @Operation(summary = "Update an existing access request", description = "Updates the access request with the specified ID")
     @PutMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updateAccessRequest(
-            @Parameter(description = "Access request ID") @PathVariable Long id,
-            @Parameter(description = "Updated access request data") @Valid @RequestBody AccessRequestDTO dto) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id,
+            @Valid @RequestBody AccessRequestDTO dto) {
+
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            logger.warn("Unauthorized role tried to update access request");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         logger.info("Updating access request with ID {}", id);
         AccessRequestDTO updatedRequest = accessRequestService.update(id, dto);
-        logger.debug("Updated access request with ID {}", updatedRequest.getId());
         return ResponseEntity.ok(updatedRequest);
     }
+
 
     @Operation(summary = "Partially update an access request", description = "Updates only the specified fields of an access request")
     @PatchMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updatePartialAccessRequest(
-            @Parameter(description = "Access request ID") @PathVariable Long id,
-            @Parameter(description = "Fields to update") @RequestBody Map<String, Object> updates) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates) {
+
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         logger.info("Partially updating access request with ID {}", id);
         AccessRequestDTO updatedRequest = accessRequestService.updatePartial(id, updates);
         return ResponseEntity.ok(updatedRequest);
     }
 
+
     @Operation(summary = "Delete an access request", description = "Deletes the access request with the specified ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccessRequest(
-            @Parameter(description = "Access request ID") @PathVariable Long id) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id) {
+
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         logger.info("Deleting access request with ID {}", id);
         accessRequestService.delete(id);
-        logger.info("Deleted access request with ID {}", id);
         return ResponseEntity.noContent().build();
     }
+
 
     @PreAuthorize("hasAuthority('COORDONATOR')")
     @PutMapping("/{id}/approve")
@@ -117,8 +148,8 @@ public class AccessRequestController {
         User user = userDetails.getUser();
         RoleName role = user.getRole().getRoleName();
 
-        if (role == RoleName.STUDENT) {
-            userId = user.getId();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -128,6 +159,7 @@ public class AccessRequestController {
         logger.debug("Found {} access requests", results.getTotalElements());
         return ResponseEntity.ok(results);
     }
+
 
 
     @ExceptionHandler(AccessRequestNotFoundException.class)
