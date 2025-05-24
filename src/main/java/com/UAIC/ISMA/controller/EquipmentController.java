@@ -1,6 +1,5 @@
 package com.UAIC.ISMA.controller;
 
-
 import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.exception.EquipmentNotFoundException;
 import com.UAIC.ISMA.exception.InvalidInputException;
@@ -10,14 +9,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +28,6 @@ import java.util.Map;
 public class EquipmentController {
 
     private static final Logger logger = LogManager.getLogger(EquipmentController.class);
-
     private final EquipmentService equipmentService;
 
     public EquipmentController(EquipmentService equipmentService) {
@@ -37,10 +35,7 @@ public class EquipmentController {
     }
 
     @GetMapping
-    @Operation(
-            summary = "Get all equipments",
-            description = "Returns a list of all equipments. Optionally filter by laboratoryId."
-    )
+    @Operation(summary = "Get all equipments", description = "Returns a list of all equipments. Optionally filter by laboratoryId.")
     public ResponseEntity<List<EquipmentDTO>> getAllEquipment(
             @Parameter(description = "Optional laboratory ID to filter equipment")
             @RequestParam(name = "laboratoryId", required = false) Long laboratoryId) {
@@ -50,23 +45,17 @@ public class EquipmentController {
     }
 
     @GetMapping("/{id}")
-    @Operation(
-            summary = "Get equipment by ID",
-            description = "Returns a single equipment item by its unique ID."
-    )
+    @Operation(summary = "Get equipment by ID", description = "Returns a single equipment item by its unique ID.")
     public ResponseEntity<EquipmentDTO> getEquipmentById(
-            @Parameter(description = "Equipment ID")
-            @PathVariable Long id) {
+            @Parameter(description = "Equipment ID") @PathVariable Long id) {
         logger.info("Fetching equipment with ID={}", id);
         EquipmentDTO equipment = equipmentService.getEquipmentById(id);
         return ResponseEntity.ok(equipment);
     }
 
     @PostMapping
-    @Operation(
-            summary = "Create a new equipment item",
-            description = "Creates a new equipment item with the provided details."
-    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Create a new equipment item", description = "Creates a new equipment item with the provided details.")
     public ResponseEntity<EquipmentDTO> createEquipment(
             @Parameter(description = "Equipment data to create")
             @RequestBody @Valid EquipmentDTO equipmentDTO) {
@@ -77,15 +66,11 @@ public class EquipmentController {
     }
 
     @PutMapping("/{id}")
-    @Operation(
-            summary = "Update a existing equipment item",
-            description = "Updates the equipment item with the specified ID."
-    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Update a existing equipment item", description = "Updates the equipment item with the specified ID.")
     public ResponseEntity<EquipmentDTO> updateEquipment(
-            @Parameter(description = "Equipment ID")
-            @PathVariable Long id,
-            @Parameter(description = "Updated equipment data")
-            @RequestBody @Valid EquipmentDTO equipmentDTO) {
+            @Parameter(description = "Equipment ID") @PathVariable Long id,
+            @Parameter(description = "Updated equipment data") @RequestBody @Valid EquipmentDTO equipmentDTO) {
         logger.info("Updating equipment with ID={}", id);
         EquipmentDTO updated = equipmentService.updateEquipment(equipmentDTO, id);
         logger.info("Updated equipment with ID={}", updated.getId());
@@ -93,13 +78,10 @@ public class EquipmentController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(
-            summary = "Delete equipment",
-            description = "Deletes the equipment item with the specified ID."
-    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Delete equipment", description = "Deletes the equipment item with the specified ID.")
     public ResponseEntity<Void> deleteEquipment(
-            @Parameter(description = "Equipment ID")
-            @PathVariable Long id) {
+            @Parameter(description = "Equipment ID") @PathVariable Long id) {
         logger.info("Deleting equipment with ID={}", id);
         equipmentService.deleteEquipment(id);
         logger.info("Deleted equipment with ID={}", id);
@@ -112,22 +94,14 @@ public class EquipmentController {
             description = "Search equipment using optional filters: name (partial match), availability status, and laboratory ID. Supports pagination."
     )
     public ResponseEntity<?> searchEquipment(
-            @Parameter(description = "Optional name to search (partial match)")
-            @RequestParam(name = "name", required = false) String name,
-
-            @Parameter(description = "Optional availability status (e.g., AVAILABLE, IN_USE)")
-            @RequestParam(name = "availabilityStatus", required = false) String status,
-
-            @Parameter(description = "Optional laboratory ID to filter")
-            @RequestParam(name = "laboratoryId",  required = false) Long labId,
-
-            @Parameter(description = "Pagination parameters (page, size, sort)")
-            Pageable pageable
+            @Parameter(description = "Optional name to search (partial match)") @RequestParam(name = "name", required = false) String name,
+            @Parameter(description = "Optional availability status (e.g., AVAILABLE, IN_USE)") @RequestParam(name = "availabilityStatus", required = false) String status,
+            @Parameter(description = "Optional laboratory ID to filter") @RequestParam(name = "laboratoryId", required = false) Long labId,
+            @Parameter(description = "Pagination parameters (page, size, sort)") Pageable pageable
     ) {
         logger.info("Searching equipment with name='{}', status='{}', labId='{}'", name, status, labId);
         return ResponseEntity.ok(equipmentService.searchEquipment(name, status, labId, pageable));
     }
-
 
     @ExceptionHandler(EquipmentNotFoundException.class)
     public ResponseEntity<String> handleEquipmentNotFoundException(EquipmentNotFoundException ex) {
@@ -151,16 +125,13 @@ public class EquipmentController {
     public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
         logger.warn("Validation failed for method argument");
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
-        );
+        ex.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
         logger.error("Unexpected error: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Unexpected error occurred");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
     }
 }

@@ -40,6 +40,7 @@ public class AccessRequestController {
     }
 
     @Operation(summary = "Get all access requests", description = "Returns a list of all access requests")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @GetMapping
     public ResponseEntity<List<AccessRequestDTO>> getAllAccessRequests(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -64,6 +65,7 @@ public class AccessRequestController {
     }
 
     @Operation(summary = "Create a new access request", description = "Creates a new access request with the provided details")
+    @PreAuthorize("hasAnyAuthority('RESEARCHER', 'STUDENT')")
     @PostMapping
     public ResponseEntity<AccessRequestDTO> createAccessRequest(
             @Parameter(description = "Access request data to create") @Valid @RequestBody AccessRequestDTO dto) {
@@ -74,6 +76,7 @@ public class AccessRequestController {
     }
 
     @Operation(summary = "Update an existing access request", description = "Updates the access request with the specified ID")
+    @PreAuthorize("hasAnyAuthority('RESEARCHER', 'STUDENT')")
     @PutMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updateAccessRequest(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -93,6 +96,7 @@ public class AccessRequestController {
 
 
     @Operation(summary = "Partially update an access request", description = "Updates only the specified fields of an access request")
+    @PreAuthorize("hasAnyAuthority('RESEARCHER', 'STUDENT')")
     @PatchMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updatePartialAccessRequest(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -111,6 +115,7 @@ public class AccessRequestController {
 
 
     @Operation(summary = "Delete an access request", description = "Deletes the access request with the specified ID")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccessRequest(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -133,7 +138,6 @@ public class AccessRequestController {
         AccessRequestDTO approvedRequest = accessRequestService.approveAccessRequest(id);
         return ResponseEntity.ok(approvedRequest);
     }
-
 
     @Operation(summary = "Filter access requests", description = "Filter by status, equipment type, userId. Paginated.")
     @GetMapping("/search")
@@ -159,8 +163,6 @@ public class AccessRequestController {
         logger.debug("Found {} access requests", results.getTotalElements());
         return ResponseEntity.ok(results);
     }
-
-
 
     @ExceptionHandler(AccessRequestNotFoundException.class)
     public ResponseEntity<String> handleAccessRequestNotFoundException(AccessRequestNotFoundException ex) {

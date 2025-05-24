@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +30,6 @@ public class RequestApprovalController {
             description = "Returns a list of all request approvals. Optionally, filter by approver ID and/or access request ID."
     )
     public ResponseEntity<List<RequestApprovalDTO>> getAllRequestApprovals(
-            @Parameter(description = "Optional approver ID and/or access request ID to filter request approvals")
             @RequestParam(required = false) Long approverId,
             @RequestParam(required = false) Long accessRequestId) {
         List<RequestApprovalDTO> requestApprovals = requestApprovalService.findAll(approverId, accessRequestId);
@@ -41,9 +41,7 @@ public class RequestApprovalController {
             summary = "Get request approval by ID",
             description = "Returns a single request approval by its unique ID."
     )
-    public ResponseEntity<RequestApprovalDTO> getRequestApprovalById(
-            @Parameter(description = "Request approval ID")
-            @PathVariable Long id) {
+    public ResponseEntity<RequestApprovalDTO> getRequestApprovalById(@PathVariable Long id) {
         RequestApprovalDTO requestApprovalDTO = requestApprovalService.findById(id);
         return ResponseEntity.ok(requestApprovalDTO);
     }
@@ -53,35 +51,30 @@ public class RequestApprovalController {
             summary = "Create a new request approval",
             description = "Creates a new request approval with the provided details."
     )
-    public ResponseEntity<RequestApprovalDTO> createRequestApproval(
-            @Parameter(description = "Request approval data to create")
-            @RequestBody RequestApprovalDTO requestApprovalDTO) {
+    public ResponseEntity<RequestApprovalDTO> createRequestApproval(@RequestBody RequestApprovalDTO requestApprovalDTO) {
         RequestApprovalDTO createdRequestApproval = requestApprovalService.create(requestApprovalDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRequestApproval);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @Operation(
             summary = "Update an existing request approval",
             description = "Updates the request approval with the specified ID."
     )
-    public ResponseEntity<RequestApprovalDTO> updateRequestApproval(
-            @Parameter(description = "Request approval ID")
-            @PathVariable Long id,
-            @Parameter(description = "Updated request approval data")
-            @RequestBody RequestApprovalDTO requestApprovalDTO) {
+    public ResponseEntity<RequestApprovalDTO> updateRequestApproval(@PathVariable Long id,
+                                                                    @RequestBody RequestApprovalDTO requestApprovalDTO) {
         RequestApprovalDTO updatedRequestApproval = requestApprovalService.update(id, requestApprovalDTO);
         return ResponseEntity.ok(updatedRequestApproval);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @Operation(
             summary = "Delete a request approval",
             description = "Deletes the request approval with the specified ID."
     )
-    public ResponseEntity<Void> deleteRequestApproval(
-            @Parameter(description = "Request approval ID")
-            @PathVariable Long id) {
+    public ResponseEntity<Void> deleteRequestApproval(@PathVariable Long id) {
         requestApprovalService.delete(id);
         return ResponseEntity.noContent().build();
     }
