@@ -132,7 +132,7 @@ public class AccessRequestController {
 
 
     @PreAuthorize("hasAuthority('COORDONATOR')")
-    @PutMapping("/{id}/approve")
+    @PutMapping("/approve/{id}")
     public ResponseEntity<AccessRequestDTO> approveRequest(@PathVariable Long id) {
         AccessRequestDTO approvedRequest = accessRequestService.approveAccessRequest(id);
         return ResponseEntity.ok(approvedRequest);
