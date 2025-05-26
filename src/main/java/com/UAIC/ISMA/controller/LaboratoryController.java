@@ -1,9 +1,6 @@
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dto.LaboratoryDTO;
-import com.UAIC.ISMA.exception.InvalidInputException;
-import com.UAIC.ISMA.exception.LaboratoryNotFoundException;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.LaboratoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,11 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/laboratories")
@@ -90,40 +85,5 @@ public class LaboratoryController {
             Pageable pageable) {
         logger.info("Searching laboratories with name='{}' and location='{}'", name, location);
         return ResponseEntity.ok(laboratoryService.searchLaboratories(name, location, pageable));
-    }
-
-    @ExceptionHandler(LaboratoryNotFoundException.class)
-    public ResponseEntity<String> handleLaboratoryNotFoundException(LaboratoryNotFoundException ex) {
-        logger.warn("Laboratory not found: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
-        logger.warn("User not found: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<String> handleInvalidInput(InvalidInputException ex) {
-        logger.warn("Invalid input: {}", ex.getMessage());
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException ex) {
-        logger.warn("Validation failed for method argument");
-        String errorMsg = ex.getBindingResult().getFieldErrors()
-                .stream()
-                .map(e -> e.getField() + ": " + e.getDefaultMessage())
-                .collect(Collectors.joining("; "));
-        return ResponseEntity.badRequest().body(errorMsg);
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        logger.error("Unexpected error: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Unexpected error occurred");
     }
 }
