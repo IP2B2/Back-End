@@ -1,8 +1,10 @@
 package com.UAIC.ISMA.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,7 +52,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage() + ": You are not authorized for this operation");
     }
 
     @ExceptionHandler(ConflictException.class)
@@ -62,4 +64,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found: " + ex.getMessage());
     }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<String> handleParsingExceptions(HttpMessageNotReadableException ex) {
+        Throwable cause = ex.getCause();
+
+        if (cause instanceof InvalidFormatException formatEx) {
+            String targetType = formatEx.getTargetType().getSimpleName();
+
+            if ("AvailabilityStatus".equals(targetType)) {
+                return ResponseEntity.badRequest().body("Invalid value for availabilityStatus. Accepted values: AVAILABLE, MAINTENANCE, IN_USE.");
+            }
+            if ("Long".equals(targetType)) {
+                return ResponseEntity.badRequest().body("Laboratory ID must be a numeric value.");
+            }
+        }
+        return ResponseEntity.badRequest().body("Malformed JSON or unsupported value type.");
+    }
+
 }
