@@ -12,6 +12,7 @@ import com.UAIC.ISMA.repository.RoleRepository;
 import com.UAIC.ISMA.repository.UserRepository;
 import com.UAIC.ISMA.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,7 +50,7 @@ public class RegisterController {
             summary = "Registers a new user",
             description = "Generates an email that is sent to the specified address where the user can reset his password"
     )
-    public ResponseEntity<?> register(@RequestBody RegistrationRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegistrationRequest request) {
         String email = request.getEmail();
 
         if (!email.endsWith("@student.uaic.ro")) {
@@ -88,11 +89,10 @@ public class RegisterController {
             summary = "Creates password",
             description = "The user's new password is stored (hashed) in the database and the account becomes active"
     )
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         String email;
         try {
             email = jwtUtil.extractEmailFromResetToken(request.getToken());
-            System.out.println("Token received: " + request.getToken());
         } catch (Exception e) {
             throw new InvalidInputException("Invalid or expired token.");
         }

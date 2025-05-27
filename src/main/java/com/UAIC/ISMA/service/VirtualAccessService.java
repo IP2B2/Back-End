@@ -4,6 +4,7 @@ import com.UAIC.ISMA.dto.VirtualAccessDTO;
 import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.entity.VirtualAccess;
 import com.UAIC.ISMA.exception.InvalidInputException;
+import com.UAIC.ISMA.exception.MissingAccessRequestIdException;
 import com.UAIC.ISMA.exception.VirtualAccessAlreadyExistsException;
 import com.UAIC.ISMA.exception.VirtualAccessNotFoundException;
 import com.UAIC.ISMA.mapper.VirtualAccessMapper;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -52,7 +54,9 @@ public class VirtualAccessService {
     public VirtualAccessDTO create(VirtualAccessDTO dto) {
         log.info("Creating virtual access for request ID {}", dto.getAccessRequestId());
         validate(dto);
-
+        if (dto.getIssuedDate() == null) {
+            dto.setIssuedDate(LocalDateTime.now());
+        }
         VirtualAccess entity = VirtualAccessMapper.toEntity(dto);
         if (dto.getAccessRequestId() != null) {
             entity.setAccessRequest(getAccessRequestOrThrow(dto.getAccessRequestId()));
@@ -72,6 +76,10 @@ public class VirtualAccessService {
         log.info("Updating virtual access with ID {}", id);
         validate(dto);
 
+        if (dto.getIssuedDate() == null) {
+            dto.setIssuedDate(LocalDateTime.now());
+        }
+
         VirtualAccess existing = virtualAccessRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Virtual access not found for update with ID {}", id);
@@ -80,6 +88,7 @@ public class VirtualAccessService {
 
         existing.setUsername(dto.getUsername());
         existing.setPassword(dto.getPassword());
+        existing.setIssuedDate(dto.getIssuedDate());
 
         if (dto.getAccessRequestId() != null) {
             existing.setAccessRequest(getAccessRequestOrThrow(dto.getAccessRequestId()));
@@ -94,6 +103,7 @@ public class VirtualAccessService {
             throw new VirtualAccessAlreadyExistsException(dto.getAccessRequestId());
         }
     }
+
 
     @Transactional
     public void deleteById(Long id) {
@@ -138,6 +148,9 @@ public class VirtualAccessService {
     }
 
     private void validate(VirtualAccessDTO dto) {
+        if (dto.getAccessRequestId() == null) {
+            throw new MissingAccessRequestIdException();
+        }
         if (dto.getUsername() == null || dto.getUsername().isBlank()) {
             log.warn("Validation failed: username is empty.");
             throw new InvalidInputException("Username cannot be empty.");
