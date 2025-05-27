@@ -5,8 +5,6 @@ import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.entity.enums.RequestStatus;
 import com.UAIC.ISMA.entity.enums.RoleName;
-import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.AccessRequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -163,23 +161,4 @@ public class AccessRequestController {
         return ResponseEntity.ok(results);
     }
 
-
-
-    @ExceptionHandler(AccessRequestNotFoundException.class)
-    public ResponseEntity<String> handleAccessRequestNotFoundException(AccessRequestNotFoundException ex) {
-        logger.warn("AccessRequestNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
-        logger.warn("UserNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        logger.error("Unexpected error: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
-    }
 }
