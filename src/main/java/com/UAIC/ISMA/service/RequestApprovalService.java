@@ -101,9 +101,9 @@ public class RequestApprovalService {
             logger.warn("Approval status must be provided in the request body.");
             throw new InvalidInputException("Approval status must be provided.");
         }
-        if (!dto.getApprovalStatus().matches("APPROVED|REJECTED|NEEDS_MORE_INFO")) {
+        if (!dto.getApprovalStatus().matches("PENDING|APPROVED|REJECTED|NEEDS_MORE_INFO")) {
             logger.warn("Invalid approval status: {}", dto.getApprovalStatus());
-            throw new InvalidInputException("Invalid approval status. Must be 'APPROVED', 'REJECTED' or 'NEEDS_MORE_INFO'.");
+            throw new InvalidInputException("Invalid approval status. Must be 'PENDING', 'APPROVED', 'REJECTED' or 'NEEDS_MORE_INFO'.");
         }
         logger.info("Updating request approval with id: {}", id);
         String username = ((UserDetails) SecurityContextHolder.getContext()
