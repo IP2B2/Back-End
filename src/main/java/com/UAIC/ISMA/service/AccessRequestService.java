@@ -68,6 +68,18 @@ public class AccessRequestService {
     }
 
     public AccessRequestDTO create(AccessRequestDTO dto) {
+        if (dto.getRequestDate() == null) {
+            throw new MissingFieldException("Request date");
+        }
+        if (dto.getStatus() == null) {
+            throw new MissingFieldException("Status");
+        }
+        if (dto.getRequestType() == null) {
+            throw new MissingFieldException("Request type");
+        }
+        if (dto.getExpectedReturnDate() == null) {
+            throw new MissingFieldException("Expected return date");
+        }
         if (dto.getEquipmentId() == null) {
             throw new MissingFieldException("Equipment ID");
         }
@@ -89,6 +101,7 @@ public class AccessRequestService {
         logger.info("AccessRequest created with ID={}", saved.getId());
         return AccessRequestMapper.toDTO(saved);
     }
+
 
     public AccessRequestDTO update(Long id, AccessRequestDTO dto) {
         logger.info("Updating AccessRequest with ID={}", id);
