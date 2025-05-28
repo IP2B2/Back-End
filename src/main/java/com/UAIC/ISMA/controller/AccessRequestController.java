@@ -136,9 +136,8 @@ public class AccessRequestController {
         return ResponseEntity.ok(approvedRequest);
     }
 
-    @Operation(summary = "Filter access requests", description = "Filter by status, equipment type, userId. Paginated.")
     @GetMapping("/search")
-    public ResponseEntity<Page<AccessRequestDTO>> filterAccessRequests(
+    public ResponseEntity<?> filterAccessRequests(
             @RequestParam(required = false) RequestStatus status,
             @RequestParam(required = false) String equipmentType,
             @RequestParam(required = false) Long userId,
@@ -150,7 +149,8 @@ public class AccessRequestController {
         RoleName role = user.getRole().getRoleName();
 
         if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Only ADMIN and COORDONATOR can filter access requests.");
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -160,5 +160,6 @@ public class AccessRequestController {
         logger.debug("Found {} access requests", results.getTotalElements());
         return ResponseEntity.ok(results);
     }
+
 
 }

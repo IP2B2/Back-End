@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -170,24 +171,45 @@ class AccessRequestControllerTest {
 
     @Test
     void testFilterAccessRequests_Success() {
-        Page<AccessRequestDTO> page = new PageImpl<>(List.of(accessRequestDTO));
-        when(accessRequestService.filterRequests(any(), any(), any(), any())).thenReturn(page);
+        AccessRequestDTO dto = new AccessRequestDTO();
+        dto.setId(1L);
+        dto.setUserId(10L);
+        dto.setEquipmentId(10L);
 
-        ResponseEntity<Page<AccessRequestDTO>> response =
-                accessRequestController.filterAccessRequests(
-                        null, "type", 10L, 0, 10, adminUserDetails);
+        Page<AccessRequestDTO> page = new PageImpl<>(List.of(dto));
+        when(accessRequestService.filterRequests(any(), any(), any(), any()))
+                .thenReturn(page);
+
+        // Construiești manual admin-ul
+        User user = new User();
+        user.setId(10L);
+        user.setRole(new Role(RoleName.ADMIN));
+        UserDetailsImpl adminUserDetails = new UserDetailsImpl(user);
+
+        ResponseEntity<?> response = accessRequestController.filterAccessRequests(
+                null, "type", 10L, 0, 10, adminUserDetails
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getContent().size());
+        assertTrue(response.getBody() instanceof Page);
+
+        Page<?> resultPage = (Page<?>) response.getBody();
+        assertEquals(1, resultPage.getContent().size());
+
+        verify(accessRequestService).filterRequests(null, "type", 10L, PageRequest.of(0, 10));
     }
+
+
+
 
     @Test
     void testFilterAccessRequests_ForbiddenForStudent() {
-        ResponseEntity<Page<AccessRequestDTO>> response =
-                accessRequestController.filterAccessRequests(
-                        null, "type", 10L, 0, 10, studentUserDetails);
+        ResponseEntity<?> response = accessRequestController.filterAccessRequests(
+                null, "type", 10L, 0, 10, studentUserDetails
+        );
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals("Only ADMIN and COORDONATOR can filter access requests.", response.getBody());
     }
 }
