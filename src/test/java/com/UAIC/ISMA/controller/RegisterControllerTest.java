@@ -54,7 +54,7 @@ class RegisterControllerTest {
     void testRegister_Success() {
         RegistrationRequest request = new RegistrationRequest();
         request.setEmail("john.doe@student.uaic.ro");
-        request.setRegistrationNumber("123456");
+        request.setNrMarca("123456");
 
         when(userRepository.existsByEmail("john.doe@student.uaic.ro")).thenReturn(false);
         when(jwtUtil.generateResetToken(any())).thenReturn("dummy-token");
@@ -74,7 +74,7 @@ class RegisterControllerTest {
     void testRegister_EmailExists() {
         RegistrationRequest request = new RegistrationRequest();
         request.setEmail("exists@student.uaic.ro");
-        request.setRegistrationNumber("123456");
+        request.setNrMarca("123456");
 
         when(userRepository.existsByEmail("exists@student.uaic.ro")).thenThrow(DuplicateEmailException.class);
 
