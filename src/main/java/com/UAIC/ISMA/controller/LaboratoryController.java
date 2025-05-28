@@ -1,5 +1,6 @@
 package com.UAIC.ISMA.controller;
 
+import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
 import com.UAIC.ISMA.service.LaboratoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,6 +44,17 @@ public class LaboratoryController {
         logger.info("Fetching laboratory with ID={}", id);
         LaboratoryDTO laboratoryDTO = laboratoryService.getLaboratoryById(id);
         return ResponseEntity.ok(laboratoryDTO);
+    }
+
+    @GetMapping("/{id}/equipment")
+    @Operation(
+            summary = "Get all equipments assigned to a laboratory",
+            description = "Retrieves a list of all equipment entities that are assigned to the laboratory with the specified ID."
+    )
+    public ResponseEntity<List<EquipmentDTO>> getEquipmentForLaboratory(@Parameter(description = "Laboratory ID") @PathVariable long id) {
+        logger.info("Fetching equipment for laboratory with ID={}", id);
+        List<EquipmentDTO> equipmentList = laboratoryService.getEquipmentByLaboratoryId(id);
+        return ResponseEntity.ok(equipmentList);
     }
 
     @PostMapping

@@ -1,9 +1,11 @@
 package com.UAIC.ISMA.service;
 
+import com.UAIC.ISMA.dto.EquipmentDTO;
 import com.UAIC.ISMA.entity.Laboratory;
 import com.UAIC.ISMA.dto.LaboratoryDTO;
 import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.exception.LaboratoryNotFoundException;
+import com.UAIC.ISMA.mapper.EquipmentMapper;
 import com.UAIC.ISMA.mapper.LaboratoryMapper;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +46,15 @@ public class LaboratoryService {
                     return new LaboratoryNotFoundException(id);
                 });
         return LaboratoryMapper.convertToDTO(lab);
+    }
+
+    public List<EquipmentDTO> getEquipmentByLaboratoryId(Long labId) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new LaboratoryNotFoundException(labId));
+
+        return laboratory.getEquipments().stream()
+                .map(EquipmentMapper::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     public LaboratoryDTO createLaboratory(LaboratoryDTO laboratoryDTO) {
