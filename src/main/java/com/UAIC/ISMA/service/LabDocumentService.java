@@ -64,7 +64,7 @@ public class LabDocumentService {
 
     public LabDocumentDTO storeDocument(MultipartFile file, String labId, String requestId, String version) {
         String originalFilename = file.getOriginalFilename();
-        logger.info("Upload fișier: {} (labId={}, requestId={}, version={})", originalFilename, labId, requestId, version);
+        logger.info("Upload de fișier: {} (labId={}, requestId={}, version={})", originalFilename, labId, requestId, version);
 
         if (originalFilename == null || !isAllowedFileType(originalFilename)) {
             logger.warn("Fișier neacceptat: {}", originalFilename);
