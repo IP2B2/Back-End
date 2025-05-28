@@ -5,3 +5,5 @@ public class LabDocumentNotFoundException extends RuntimeException {
         super("LabDocument not found with ID: " + id);
     }
 }
+
+

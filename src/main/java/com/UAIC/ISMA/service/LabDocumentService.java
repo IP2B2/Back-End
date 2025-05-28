@@ -1,9 +1,13 @@
 package com.UAIC.ISMA.service;
 
 import com.UAIC.ISMA.dto.LabDocumentDTO;
+import com.UAIC.ISMA.entity.AccessRequest;
 import com.UAIC.ISMA.entity.LabDocument;
 import com.UAIC.ISMA.entity.Laboratory;
+import com.UAIC.ISMA.exception.EntityNotFoundException;
+import com.UAIC.ISMA.exception.LabDocumentNotFoundException;
 import com.UAIC.ISMA.mapper.LabDocumentsMapper;
+import com.UAIC.ISMA.repository.AccessRequestRepository;
 import com.UAIC.ISMA.repository.LabDocumentRepository;
 import com.UAIC.ISMA.repository.LaboratoryRepository;
 import org.slf4j.Logger;
@@ -27,6 +31,7 @@ public class LabDocumentService {
 
     private final LabDocumentRepository repository;
     private final LaboratoryRepository labRepo;
+    private final AccessRequestRepository accessRequestRepository;
     private final LabDocumentsMapper mapper;
     private final AuditLogService auditLogService;
 
@@ -36,16 +41,21 @@ public class LabDocumentService {
     public LabDocumentService(LabDocumentRepository repository,
                               LaboratoryRepository labRepo,
                               LabDocumentsMapper mapper,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService,
+                              AccessRequestRepository accessRequestRepository) {
         this.repository = repository;
         this.labRepo = labRepo;
         this.mapper = mapper;
         this.auditLogService = auditLogService;
+        this.accessRequestRepository = accessRequestRepository;
     }
 
     public List<LabDocumentDTO> getDocumentsByLab(String labId) {
         Long id = Long.parseLong(labId);
         logger.info("Listare documente pentru laboratorul cu ID: {}", id);
+        Laboratory lab = labRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Laboratorul cu id-ul " + labId + " nu există."));
+
         return repository.findByLab_IdAndArchivedFalse(id)
                 .stream()
                 .map(mapper::toDTO)
@@ -122,7 +132,8 @@ public class LabDocumentService {
 
     public ResponseEntity<Resource> downloadDocument(Long id) {
         LabDocument doc = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Document not found: " + id));
+                .orElseThrow(() -> new LabDocumentNotFoundException(id));
+
         logger.info("Download document: {} (ID={})", doc.getFilename(), id);
 
         Path filePath = Paths.get(doc.getFilePath());
