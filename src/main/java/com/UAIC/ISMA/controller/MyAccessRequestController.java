@@ -2,7 +2,6 @@ package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.enums.RequestStatus;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.AccessRequestService;
 import com.UAIC.ISMA.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,37 +45,24 @@ public class MyAccessRequestController {
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number") int page,
             @RequestParam(required = false) @Parameter(description = "Page size") Integer size
     ) {
-        try {
-            if (currentUser == null || currentUser.getUsername() == null) {
-                logger.error("Authenticated user is null or missing username.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated.");
-            }
-
-            int pageSize = (size != null) ? size : 10;
-            logger.info("Fetching access requests for current user: {}", currentUser.getUsername());
-
-            Long userId = userService.findIdByUsername(currentUser.getUsername());
-            List<AccessRequestDTO> results = accessRequestService.findByUserWithFilters(userId, status, date, page, pageSize);
-
-            logger.debug("Found {} access requests for user {}", results.size(), userId);
-            return ResponseEntity.ok(results);
-
-        } catch (UserNotFoundException ex) {
-            return handleUserNotFound(ex);
-        } catch (RuntimeException ex) {
-            return handleGenericError(ex);
+        if (currentUser == null || currentUser.getUsername() == null) {
+            logger.error("Authenticated user is null or missing username.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated.");
         }
-    }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
-        logger.warn("UserNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
+        int pageSize = (size != null) ? size : 10;
+        logger.info("Fetching access requests for current user: {}", currentUser.getUsername());
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleGenericError(RuntimeException ex) {
-        logger.error("Unexpected error while fetching access requests: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
+        Long userId = userService.findIdByUsername(currentUser.getUsername());
+        List<AccessRequestDTO> results = accessRequestService.findByUserWithFilters(userId, status, date, page, pageSize);
+
+        if (results.isEmpty()) {
+            String message = "No access requests found for user '" + currentUser.getUsername() + "' with the given filters.";
+            logger.info(message);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+        }
+
+        logger.debug("Found {} access requests for user {}", results.size(), userId);
+        return ResponseEntity.ok(results);
     }
 }
