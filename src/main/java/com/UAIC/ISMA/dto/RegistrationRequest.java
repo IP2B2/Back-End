@@ -1,9 +1,10 @@
 package com.UAIC.ISMA.dto;
 
-
+import jakarta.validation.constraints.NotBlank;
 
 public class RegistrationRequest {
     private String email;
+    @NotBlank
     private String registrationNumber;
 
     public String getEmail() {
