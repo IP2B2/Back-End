@@ -108,6 +108,8 @@ class AccessRequestServiceTest {
 
     @Test
     void shouldCreateAccessRequest_whenValidInput() {
+        dto.setExpectedReturnDate(LocalDateTime.now().plusDays(1));
+
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(equipmentRepository.findById(1L)).thenReturn(Optional.of(equipment));
         when(accessRequestRepository.save(any())).thenReturn(accessRequest);
@@ -119,12 +121,15 @@ class AccessRequestServiceTest {
         assertEquals(1L, result.getEquipmentId());
     }
 
+
     @Test
     void shouldThrow_whenUserNotFoundOnCreate() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        dto.setExpectedReturnDate(LocalDateTime.now().plusDays(1)); // 🛠️ Adăugat ca să nu pice pe validare
+        when(userRepository.findByUsername("username")).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> accessRequestService.create(dto));
     }
+
 
     @Test
     void shouldUpdateAccessRequest_whenValidInput() {
