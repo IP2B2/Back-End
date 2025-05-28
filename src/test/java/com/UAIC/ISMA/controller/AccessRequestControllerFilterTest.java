@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
@@ -59,12 +60,12 @@ class AccessRequestControllerFilterTest {
     void testFilterAccessRequests_asStudent() {
         UserDetailsImpl student = mockPrincipal(RoleName.STUDENT, 5L);
 
-        ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
+        ResponseEntity<?> response = accessRequestController.filterAccessRequests(
                 null, null, null, 0, 10, student
         );
 
         assertEquals(403, response.getStatusCodeValue());
-        assertNull(response.getBody()); // deoarece ai returnat status FORBIDDEN
+        assertEquals("Only ADMIN and COORDONATOR can filter access requests.", response.getBody());
     }
 
 
@@ -73,30 +74,36 @@ class AccessRequestControllerFilterTest {
         UserDetailsImpl admin = mockPrincipal(RoleName.ADMIN, 100L);
         Page<AccessRequestDTO> mockPage = new PageImpl<>(List.of(accessRequestDTO));
 
-        when(accessRequestService.filterRequests(any(), any(), eq(null), any(Pageable.class))).thenReturn(mockPage);
+        when(accessRequestService.filterRequests(any(), any(), eq(null), any(Pageable.class)))
+                .thenReturn(mockPage);
 
-        ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
+        ResponseEntity<?> response = accessRequestController.filterAccessRequests(
                 null, null, null, 0, 10, admin
         );
 
-        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Page);
+        Page<?> page = (Page<?>) response.getBody();
+        assertEquals(1, page.getTotalElements());
+
         verify(accessRequestService).filterRequests(null, null, null, PageRequest.of(0, 10));
     }
+
 
     @Test
     void testFilterAccessRequests_asResearcher_shouldBeForbidden() {
         UserDetailsImpl researcher = mockPrincipal(RoleName.RESEARCHER, 200L);
 
-        ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
+        ResponseEntity<?> response = accessRequestController.filterAccessRequests(
                 null, null, null, 0, 10, researcher
         );
 
         assertEquals(403, response.getStatusCodeValue());
-
-        assertNull(response.getBody());
+        assertEquals("Only ADMIN and COORDONATOR can filter access requests.", response.getBody());
 
         verifyNoInteractions(accessRequestService);
     }
+
 
 
     @Test
@@ -104,13 +111,20 @@ class AccessRequestControllerFilterTest {
         UserDetailsImpl coordinator = mockPrincipal(RoleName.COORDONATOR, 300L);
         Page<AccessRequestDTO> mockPage = new PageImpl<>(List.of(accessRequestDTO));
 
-        when(accessRequestService.filterRequests(any(), any(), eq(null), any(Pageable.class))).thenReturn(mockPage);
+        when(accessRequestService.filterRequests(any(), any(), eq(null), any(Pageable.class)))
+                .thenReturn(mockPage);
 
-        ResponseEntity<Page<AccessRequestDTO>> response = accessRequestController.filterAccessRequests(
+        ResponseEntity<?> response = accessRequestController.filterAccessRequests(
                 null, null, null, 0, 10, coordinator
         );
 
-        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+
+        Page<?> page = (Page<?>) response.getBody();
+        assertEquals(1, page.getTotalElements());
+
         verify(accessRequestService).filterRequests(null, null, null, PageRequest.of(0, 10));
     }
+
 }
