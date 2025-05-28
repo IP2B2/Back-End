@@ -1,7 +1,6 @@
 package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dto.RequestApprovalDTO;
-import com.UAIC.ISMA.exception.*;
 import com.UAIC.ISMA.service.RequestApprovalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -86,29 +85,5 @@ public class RequestApprovalController {
         logger.info("Deleting request approval with id: {}", id);
         requestApprovalService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler(RequestApprovalNotFoundException.class)
-    public ResponseEntity<String> handleRequestApprovalNotFoundException(RequestApprovalNotFoundException ex) {
-        logger.warn("RequestApprovalNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
-        logger.warn("AccessRequestNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<String> handleInvalidInputException(InvalidInputException ex) {
-        logger.warn("Bad request: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        logger.error("Unexpected error: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
     }
 }
