@@ -77,6 +77,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                         .equipment(eq1)
                         .status(RequestStatus.PENDING)
                         .requestType(RequestType.PHYSICAL)
+                        .requestDate(LocalDateTime.now())
                         .build();
 
                 request = accessRequestRepo.save(request);
