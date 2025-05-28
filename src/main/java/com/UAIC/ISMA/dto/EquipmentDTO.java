@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -17,11 +17,11 @@ public class EquipmentDTO {
     private Long id;
 
     @NotBlank(message = "Name is required")
-    @Size(max = 5000, message = "Name must not exceed 5000 characters")
+    @Size(max = 255, message = "Name must not exceed 255 characters")
     private String name;
 
     @NotBlank(message = "Inventory number is required")
-    @Size(max = 5000, message = "Inventory number must not exceed 5000 characters")
+    @Size(max = 255, message = "Inventory number must not exceed 255 characters")
     private String inventoryNumber;
 
     @NotNull(message = "Availability status must be specified")
@@ -30,13 +30,22 @@ public class EquipmentDTO {
     @NotNull(message = "Laboratory ID is required")
     private Long laboratoryId;
 
-    @Size(max = 5000, message = "Access requirements must not exceed 5000 characters")
+    @Size(max = 255, message = "Access requirements must not exceed 255 characters")
     private String accessRequirements;
 
     private String photo;
-    private LocalDate acquisitionDate;
+    private LocalDateTime acquisitionDate;
 
-    public EquipmentDTO(Long id, String name, String photo, String inventoryNumber, LocalDate acquisitionDate
+    @Size(max = 2500, message = "Usage requirements must not exceed 2500 characters")
+    private String usage;
+
+    @Size(max = 2500, message = "Material requirements must not exceed 2500 characters")
+    private String material;
+
+    @Size(max = 2500, message = "Description must not exceed 2500 characters")
+    private String description;
+
+    public EquipmentDTO(Long id, String name, String photo, String inventoryNumber, LocalDateTime acquisitionDate
     , AvailabilityStatus availabilityStatus, Long laboratoryId, String accessRequirements) {
         this.id = id;
         this.name = name;
