@@ -16,7 +16,7 @@ public class LaboratoryDTO {
     @Size(max = 255, message = "Name must be at most 255 characters")
     private String labName;
 
-    @Size(max = 1000, message = "Description must be at most 1000 characters")
+    @Size(max = 255, message = "Description must be at most 255 characters")
     private String description;
 
     @NotBlank(message = "Location must not be blank")

@@ -40,7 +40,9 @@ public class LabDocumentController {
 
     @Operation(summary = "Upload document oficial laborator", description = "Permite unui administrator sau coordonator să încarce un document oficial în laboratorul specificat")
     @PostMapping("/labs/{labId}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('COORDINATOR')")
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
+
     public ResponseEntity<LabDocumentDTO> uploadLabDocument(@PathVariable String labId,
                                                             @RequestParam("file") MultipartFile file,
                                                             @RequestParam(required = false) String version) {
@@ -58,7 +60,9 @@ public class LabDocumentController {
 
     @Operation(summary = "Șterge document", description = "Permite unui administrator sau coordonator să șteargă un document după ID")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('COORDINATOR')")
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
+
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         logger.info("DELETE /labdocuments/{} - ștergere document", id);
         service.deleteDocument(id);
@@ -67,7 +71,9 @@ public class LabDocumentController {
 
     @Operation(summary = "Actualizare document", description = "Înlocuiește documentul cu un fișier nou și marchează versiunea veche ca arhivată")
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('COORDINATOR')")
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
+
     public ResponseEntity<LabDocumentDTO> updateDocument(@PathVariable Long id,
                                                          @RequestParam("file") MultipartFile file,
                                                          @RequestParam(required = false) String version) {

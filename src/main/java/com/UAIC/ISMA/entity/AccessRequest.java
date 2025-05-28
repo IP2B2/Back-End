@@ -62,9 +62,4 @@ public class AccessRequest implements Serializable {
 
     @OneToOne(mappedBy = "accessRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private VirtualAccess virtualAccess;
-
-    @PrePersist
-    public void prePersist() {
-        this.requestDate = LocalDateTime.now();
-    }
 }

@@ -11,7 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -28,6 +30,7 @@ public class AuditLogController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(
             summary = "Get all audit logs",
             description = "Returns a list of all audit logs. Each log contains: ID, action, details, timestamp, and user ID."
@@ -38,6 +41,7 @@ public class AuditLogController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(
             summary = "Get audit log by ID",
             description = "Returns a single audit log identified by its ID. Includes: ID, action, details, timestamp, and user ID."
@@ -49,6 +53,7 @@ public class AuditLogController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(
             summary = "Search audit logs by keyword",
             description = "Searches audit logs by keyword found in the 'action' field. Returns a list of matching logs."
@@ -59,6 +64,7 @@ public class AuditLogController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(
             summary = "Create a new audit log",
             description = "Creates a new audit log entry. Requires: action, details, timestamp, and user ID. Returns the created log.",
@@ -67,23 +73,27 @@ public class AuditLogController {
                     @ApiResponse(responseCode = "400", description = "Invalid input or user not found")
             }
     )
-    public ResponseEntity<AuditLogDTO> createAuditLog(@RequestBody AuditLogDTO auditLogDTO) {
+    public ResponseEntity<AuditLogDTO> createAuditLog(@Valid @RequestBody AuditLogDTO auditLogDTO) {
         log.info("Creating audit log for userId: {}", auditLogDTO.getUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(auditLogService.create(auditLogDTO));
     }
 
+
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(
             summary = "Update an existing audit log",
             description = "Updates the audit log with the specified ID. Allows updating: action, details, timestamp, and user ID."
     )
     public ResponseEntity<AuditLogDTO> updateAuditLog(@PathVariable Long id,
-                                                      @RequestBody AuditLogDTO auditLogDTO) {
+                                                      @Valid @RequestBody AuditLogDTO auditLogDTO) {
         log.info("Updating audit log id: {}", id);
         return ResponseEntity.ok(auditLogService.update(id, auditLogDTO));
     }
 
+
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(
             summary = "Delete an audit log",
             description = "Deletes the audit log identified by the given ID. Returns no content on success."

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +26,7 @@ public class NotificationController {
     }
 
     @GetMapping("/all")
-    @Operation(
-            summary = "Get all notifications",
-            description = "Returns a list of all notifications. Optionally, filter by userId."
-    )
+    @Operation(summary = "Get all notifications", description = "Returns a list of all notifications. Optionally, filter by userId.")
     public ResponseEntity<List<NotificationDTO>> getAllNotifications(
             @Parameter(description = "Optional user ID to filter notifications")
             @RequestParam(required = false) Long userId) {
@@ -37,51 +35,37 @@ public class NotificationController {
     }
 
     @GetMapping("/{id}")
-    @Operation(
-            summary = "Get notification by ID",
-            description = "Returns a single notification by its unique ID."
-    )
+    @Operation(summary = "Get notification by ID", description = "Returns a single notification by its unique ID.")
     public ResponseEntity<NotificationDTO> getNotificationById(
-            @Parameter(description = "Notification ID")
-            @PathVariable Long id) {
+            @Parameter(description = "Notification ID") @PathVariable Long id) {
         NotificationDTO notificationDTO = notificationService.findById(id);
         return ResponseEntity.ok(notificationDTO);
     }
 
     @PostMapping
-    @Operation(
-            summary = "Create a new notification",
-            description = "Creates a new notification with the provided details."
-    )
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
+    @Operation(summary = "Create a new notification", description = "Creates a new notification with the provided details.")
     public ResponseEntity<NotificationDTO> createNotification(
-            @Parameter(description = "Notification data to create")
-            @RequestBody NotificationDTO notificationDTO) {
+            @Parameter(description = "Notification data to create") @RequestBody NotificationDTO notificationDTO) {
         NotificationDTO createdNotification = notificationService.create(notificationDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdNotification);
     }
 
     @PutMapping("/{id}")
-    @Operation(
-            summary = "Update an existing notification",
-            description = "Updates the notification with the specified ID."
-    )
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
+    @Operation(summary = "Update an existing notification", description = "Updates the notification with the specified ID.")
     public ResponseEntity<NotificationDTO> updateNotification(
-            @Parameter(description = "Notification ID")
-            @PathVariable Long id,
-            @Parameter(description = "Updated notification data")
-            @RequestBody NotificationDTO notificationDTO) {
+            @Parameter(description = "Notification ID") @PathVariable Long id,
+            @Parameter(description = "Updated notification data") @RequestBody NotificationDTO notificationDTO) {
         NotificationDTO updatedNotification = notificationService.update(id, notificationDTO);
         return ResponseEntity.ok(updatedNotification);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(
-            summary = "Delete a notification",
-            description = "Deletes the notification with the specified ID."
-    )
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
+    @Operation(summary = "Delete a notification", description = "Deletes the notification with the specified ID.")
     public ResponseEntity<Void> deleteNotification(
-            @Parameter(description = "Notification ID")
-            @PathVariable Long id) {
+            @Parameter(description = "Notification ID") @PathVariable Long id) {
         notificationService.delete(id);
         return ResponseEntity.noContent().build();
     }
