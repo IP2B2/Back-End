@@ -2,7 +2,6 @@ package com.UAIC.ISMA.controller;
 
 import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.enums.RequestStatus;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.AccessRequestService;
 import com.UAIC.ISMA.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,14 +61,15 @@ class MyAccessRequestControllerTest {
     }
 
     @Test
-    void shouldHandleUserNotFound() {
-        when(userService.findIdByUsername("testuser"))
-                .thenThrow(new UserNotFoundException("User not found"));
+    void shouldReturnNotFoundIfNoAccessRequestsExist() {
+        when(userService.findIdByUsername("testuser")).thenReturn(10L);
+        when(accessRequestService.findByUserWithFilters(eq(10L), any(), any(), eq(0), eq(10)))
+                .thenReturn(Collections.emptyList());
 
         ResponseEntity<?> response = controller.getMyAccessRequests(userDetails, null, null, 0, 10);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("User not found", response.getBody());
+        assertTrue(response.getBody().toString().contains("No access requests"));
     }
 
     @Test

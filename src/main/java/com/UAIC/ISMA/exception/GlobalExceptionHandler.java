@@ -68,4 +68,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found: " + ex.getMessage());
     }
+
+    @ExceptionHandler(MissingFieldException.class)
+    public ResponseEntity<String> handleMissingFieldException(MissingFieldException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MissingAccessRequestIdException.class)
+    public ResponseEntity<String> handleMissingAccessRequestId(MissingAccessRequestIdException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body("Validation failed: " + ex.getMessage());
+    }
 }
