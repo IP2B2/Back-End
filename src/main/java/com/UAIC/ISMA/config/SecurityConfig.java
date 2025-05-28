@@ -1,6 +1,7 @@
 package com.UAIC.ISMA.config;
 
 import com.UAIC.ISMA.service.UserDetailsImplService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,7 +20,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-
+    @Autowired
+    private InactiveUserRequestFilter inactiveUserRequestFilter;
     private final JwtFilter jwtFilter;
     private final UserDetailsImplService userDetailsService;
 
@@ -33,13 +35,14 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/reset-password").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/finish-register").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(inactiveUserRequestFilter, JwtFilter.class);
 
         return http.build();
     }

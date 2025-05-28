@@ -1,25 +1,30 @@
 package com.UAIC.ISMA.dto;
+import com.UAIC.ISMA.entity.enums.RoleName;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
-
+@Getter
+@Setter
 public class ResetPasswordRequest {
     private String token;
     @NotBlank
     private String newPassword;
 
-    public String getToken() {
-        return token;
-    }
+    @NotBlank
+    private String firstName;
 
-    public void setToken(String token) {
-        this.token = token;
-    }
+    @NotBlank
+    private String lastName;
 
-    public String getNewPassword() {
-        return newPassword;
-    }
+    private String facultate;
 
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
-    }
+    private String grupa;
+
+    private String an;
+
+    @NotNull
+    private RoleName role;
+
 }

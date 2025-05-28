@@ -58,10 +58,18 @@ public class DatabaseSeeder implements CommandLineRunner {
             seedRoleIfNotExists(roleName);
         }
 
-        seedUserIfNotExists("admin@student.uaic.ro", "Admin User", "admin123", RoleName.ADMIN);
-        seedUserIfNotExists("coordonator@student.uaic.ro", "Coordonator User", "coordonator123", RoleName.COORDONATOR);
-        seedUserIfNotExists("researcher@student.uaic.ro", "Researcher User", "researcher123", RoleName.RESEARCHER);
-        seedUserIfNotExists("student@student.uaic.ro", "Student User", "student123", RoleName.STUDENT);
+        seedUserIfNotExists("admin@student.uaic.ro", "Admin User", "admin123", RoleName.ADMIN,
+                "Admin", "User", "Informatica", null, null, null);
+
+        seedUserIfNotExists("coordonator@student.uaic.ro", "Coordonator User", "coordonator123", RoleName.COORDONATOR,
+                "Coordonator", "User", "Informatica", null, null, null);
+
+        seedUserIfNotExists("researcher@student.uaic.ro", "Researcher User", "researcher123", RoleName.RESEARCHER,
+                "Researcher", "User", "Informatica", null, null, null);
+
+        seedUserIfNotExists("student@student.uaic.ro", "Student User", "student123", RoleName.STUDENT,
+                "Student", "User", "Informatica", "1", "D4", "45678");
+
 
         if (labRepo.count() == 0) {
             Laboratory lab1 = labRepo.save(new Laboratory("Lab A", "Microscopie", "Etaj 1"));
@@ -110,16 +118,15 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
     }
 
-    private void seedUserIfNotExists(String email, String username, String rawPassword, RoleName roleName) {
+    private void seedUserIfNotExists(String email, String username, String rawPassword, RoleName roleName,
+                                     String firstName, String lastName, String facultate, String an, String grupa, String nrMarca) {
         if (!userRepository.existsByEmail(email)) {
             Role role = roleRepository.findByRoleName(roleName);
-            User user = new User();
-            user.setEmail(email);
-            user.setUsername(username);
-            user.setPassword(passwordEncoder.encode(rawPassword));
-            user.setRole(role);
-            user.setStatus("active");
+            User user = new User(null, username, email, passwordEncoder.encode(rawPassword), "active", firstName, lastName,
+                    facultate, an, grupa, nrMarca, role, null, null, null, null, null
+            );
             userRepository.save(user);
         }
     }
+
 }

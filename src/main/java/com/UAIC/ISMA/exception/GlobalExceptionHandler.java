@@ -86,4 +86,9 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body("Validation failed: " + ex.getMessage());
     }
+
+    @ExceptionHandler(InactiveUserException.class)
+    public ResponseEntity<String> handleInactiveUser(InactiveUserException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
 }

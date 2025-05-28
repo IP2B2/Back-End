@@ -12,9 +12,9 @@ public class EmailService {
 
     public void sendActivationEmail(String to, String token) {
         String url = "https://ismauaic.com/reset-password?token=" + token;
-        String subject = "Seteaza-ti o parola noua.";
+        String subject = "Completeaza cu datele tale";
         String message = "Hello!\n\nContul tau a fost creat, dar nu este verificat inca.\n\n" +
-                "Pentru a se activa contul, este nevoie sa iti setezi o parola, accesand acest link:\n" + url +
+                "Pentru a se activa contul, este nevoie sa iti setezi o parola si sa oferi mai multe date, accesand acest link:\n" + url +
                 "\n\nLinkul expira in 60 de minute.";
 
         SimpleMailMessage email = new SimpleMailMessage();
@@ -49,8 +49,8 @@ public class EmailService {
 
     public void sendAccountApprovedNotification(String to) {
         String subject = "Cont aprobat - ISMA";
-        String message = "Salut!\n\nContul tău de student a fost aprobat de un administrator.\n" +
-                "Acum poți accesa platforma ISMA cu credențialele tale.\n\n" +
+        String message = "Salut!\n\nContul tău a fost activat de un administrator.\n" +
+                "Acum poți inchiria echipamente prin platforma ISMA, simplu si usor.\n\n" +
                 "Succes!\nEchipa ISMA";
 
         SimpleMailMessage email = new SimpleMailMessage();
