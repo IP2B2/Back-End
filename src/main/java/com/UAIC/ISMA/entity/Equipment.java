@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -24,13 +24,12 @@ public class Equipment implements Serializable {
 
     private String photo;
     private String inventoryNumber;
-    private LocalDate acquisitionDate;
+    private LocalDateTime acquisitionDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AvailabilityStatus availabilityStatus;
 
-    @Column(length = 5000)
     private String accessRequirements;
 
     @ManyToOne
@@ -40,7 +39,16 @@ public class Equipment implements Serializable {
     @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccessRequest> accessRequests;
 
-    public Equipment(String name, String inventoryNumber, LocalDate acquisitionDate,
+    @Column(length = 2500)
+    private String usage;
+
+    @Column(length = 2500)
+    private String material;
+
+    @Column(length = 2500)
+    private String description;
+
+    public Equipment(String name, String inventoryNumber, LocalDateTime acquisitionDate,
                      AvailabilityStatus availabilityStatus, String accessRequirements, Laboratory laboratory) {
         this.name = name;
         this.inventoryNumber = inventoryNumber;

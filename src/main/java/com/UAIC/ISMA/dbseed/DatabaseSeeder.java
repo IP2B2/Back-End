@@ -7,7 +7,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Component
@@ -76,8 +75,8 @@ public class DatabaseSeeder implements CommandLineRunner {
             Laboratory lab1 = labRepo.save(new Laboratory("Lab A", "Microscopie", "Etaj 1"));
             Laboratory lab2 = labRepo.save(new Laboratory("Lab B", "Chimie", "Etaj 2"));
 
-            Equipment eq1 = equipmentRepo.save(new Equipment("Microscop X", "INV123", LocalDate.now().minusMonths(2), AvailabilityStatus.AVAILABLE, "Badge123", lab1));
-            Equipment eq2 = equipmentRepo.save(new Equipment("Spectrometru Y", "INV456", LocalDate.now().minusMonths(1), AvailabilityStatus.IN_USE, "Badge456", lab2));
+            Equipment eq1 = equipmentRepo.save(new Equipment("Microscop X", "INV123", LocalDateTime.now().minusMonths(2), AvailabilityStatus.AVAILABLE, "Badge123", lab1));
+            Equipment eq2 = equipmentRepo.save(new Equipment("Spectrometru Y", "INV456", LocalDateTime.now().minusMonths(1), AvailabilityStatus.IN_USE, "Badge456", lab2));
 
             User student = userRepository.findByEmail("student@student.uaic.ro");
             if (student != null) {
