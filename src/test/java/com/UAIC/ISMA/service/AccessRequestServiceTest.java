@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +44,7 @@ class AccessRequestServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
+        // Setup entități
         user = new User();
         user.setId(1L);
 
@@ -66,7 +68,25 @@ class AccessRequestServiceTest {
         dto.setStatus(RequestStatus.PENDING);
         dto.setRequestType(RequestType.VIRTUAL);
         dto.setProposalFile("file.pdf");
+
+        // 🔐 Mock SecurityContext cu UserDetails
+        org.springframework.security.core.Authentication authentication = mock(org.springframework.security.core.Authentication.class);
+        org.springframework.security.core.userdetails.User mockUserDetails =
+                new org.springframework.security.core.userdetails.User("username", "password", Collections.emptyList());
+        when(authentication.getPrincipal()).thenReturn(mockUserDetails);
+
+        org.springframework.security.core.context.SecurityContext securityContext = mock(org.springframework.security.core.context.SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        org.springframework.security.core.context.SecurityContextHolder.setContext(securityContext);
+
+        // ✅ Lipsa mock aici cauza eroarea ta
+        when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
     }
+
+
+
+
+
 
     @Test
     void shouldReturnDTO_whenFindByIdSuccess() {
@@ -88,6 +108,8 @@ class AccessRequestServiceTest {
 
     @Test
     void shouldCreateAccessRequest_whenValidInput() {
+        dto.setExpectedReturnDate(LocalDateTime.now().plusDays(1));
+
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(equipmentRepository.findById(1L)).thenReturn(Optional.of(equipment));
         when(accessRequestRepository.save(any())).thenReturn(accessRequest);
@@ -99,12 +121,15 @@ class AccessRequestServiceTest {
         assertEquals(1L, result.getEquipmentId());
     }
 
+
     @Test
     void shouldThrow_whenUserNotFoundOnCreate() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        dto.setExpectedReturnDate(LocalDateTime.now().plusDays(1)); // 🛠️ Adăugat ca să nu pice pe validare
+        when(userRepository.findByUsername("username")).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> accessRequestService.create(dto));
     }
+
 
     @Test
     void shouldUpdateAccessRequest_whenValidInput() {

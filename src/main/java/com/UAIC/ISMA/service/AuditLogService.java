@@ -5,6 +5,7 @@ import com.UAIC.ISMA.entity.AuditLog;
 import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.exception.AuditLogNotFoundException;
 import com.UAIC.ISMA.exception.EntityNotFoundException;
+import com.UAIC.ISMA.exception.InvalidInputException;
 import com.UAIC.ISMA.mapper.AuditLogMapper;
 import com.UAIC.ISMA.repository.AuditLogRepository;
 import com.UAIC.ISMA.repository.UserRepository;
@@ -55,6 +56,8 @@ public class AuditLogService {
     }
 
     public AuditLogDTO create(AuditLogDTO dto) {
+        validate(dto);
+
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + dto.getUserId()));
 
@@ -64,6 +67,8 @@ public class AuditLogService {
     }
 
     public AuditLogDTO update(Long id, AuditLogDTO dto) {
+        validate(dto);
+
         AuditLog existing = auditLogRepository.findById(id)
                 .orElseThrow(() -> new AuditLogNotFoundException(id));
 
@@ -78,6 +83,19 @@ public class AuditLogService {
         AuditLog updated = auditLogRepository.save(existing);
         return auditLogMapper.toDto(updated);
     }
+
+    private void validate(AuditLogDTO dto) {
+        if (dto.getUserId() == null) {
+            throw new InvalidInputException("User ID is missing in audit log request.");
+        }
+        if (dto.getAction() == null || dto.getAction().isBlank()) {
+            throw new InvalidInputException("Action is required and cannot be empty.");
+        }
+        if (dto.getDetails() == null || dto.getDetails().isBlank()) {
+            throw new InvalidInputException("Details are required and cannot be empty.");
+        }
+    }
+
 
     public void delete(Long id) {
         AuditLog auditLog = auditLogRepository.findById(id)

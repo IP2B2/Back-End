@@ -46,5 +46,15 @@ public class UserController {
 
         return ResponseEntity.ok("Student account approved and activated.");
     }
+
+    @GetMapping("/user/test")
+    public String userTest() {
+        return "Hello, User!";
+    }
+
+    @GetMapping("/admin/test")
+    public String adminTest() {
+        return "Hello, Admin!";
+    }
 }
 
