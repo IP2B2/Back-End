@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -72,10 +73,11 @@ public class AuditLogController {
                     @ApiResponse(responseCode = "400", description = "Invalid input or user not found")
             }
     )
-    public ResponseEntity<AuditLogDTO> createAuditLog(@RequestBody AuditLogDTO auditLogDTO) {
+    public ResponseEntity<AuditLogDTO> createAuditLog(@Valid @RequestBody AuditLogDTO auditLogDTO) {
         log.info("Creating audit log for userId: {}", auditLogDTO.getUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(auditLogService.create(auditLogDTO));
     }
+
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -84,10 +86,11 @@ public class AuditLogController {
             description = "Updates the audit log with the specified ID. Allows updating: action, details, timestamp, and user ID."
     )
     public ResponseEntity<AuditLogDTO> updateAuditLog(@PathVariable Long id,
-                                                      @RequestBody AuditLogDTO auditLogDTO) {
+                                                      @Valid @RequestBody AuditLogDTO auditLogDTO) {
         log.info("Updating audit log id: {}", id);
         return ResponseEntity.ok(auditLogService.update(id, auditLogDTO));
     }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
