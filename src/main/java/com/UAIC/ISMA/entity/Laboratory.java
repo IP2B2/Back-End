@@ -23,7 +23,7 @@ public class Laboratory implements Serializable {
     private String description;
     private String location;
 
-    @OneToMany(mappedBy = "laboratory", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "laboratory", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Equipment> equipments;
 
     @OneToMany(mappedBy = "lab")
