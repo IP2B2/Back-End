@@ -17,6 +17,9 @@ public class EquipmentMapper {
         dto.setAcquisitionDate(equipment.getAcquisitionDate());
         dto.setAvailabilityStatus(equipment.getAvailabilityStatus());
         dto.setAccessRequirements(equipment.getAccessRequirements());
+        dto.setUsage(equipment.getUsage());
+        dto.setMaterial(equipment.getMaterial());
+        dto.setDescription(equipment.getDescription());
 
         if (equipment.getLaboratory() != null) {
             dto.setLaboratoryId(equipment.getLaboratory().getId());
@@ -33,6 +36,9 @@ public class EquipmentMapper {
         e.setAcquisitionDate(dto.getAcquisitionDate());
         e.setAvailabilityStatus(dto.getAvailabilityStatus());
         e.setAccessRequirements(dto.getAccessRequirements());
+        e.setUsage(dto.getUsage());
+        e.setMaterial(dto.getMaterial());
+        e.setDescription(dto.getDescription());
 
         if (dto.getLaboratoryId() != null) {
             Laboratory lab = laboratoryRepository.findById(dto.getLaboratoryId())
