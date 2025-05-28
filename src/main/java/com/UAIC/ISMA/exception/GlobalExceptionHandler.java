@@ -3,10 +3,13 @@ package com.UAIC.ISMA.exception;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,7 +33,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Validation failed: " + ex.getBindingResult().toString());
+        String errorMessages = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("\n"));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessages);
     }
 
     @ExceptionHandler(BindException.class)
@@ -50,7 +57,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied: You don't have permissions for this action");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage() + ": You are not authorized for this operation");
+
     }
 
     @ExceptionHandler(ConflictException.class)
@@ -63,14 +71,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found: " + ex.getMessage());
     }
 
-    @ExceptionHandler(LabDocumentNotFoundException.class)
-    public ResponseEntity<String> handleLabDocumentNotFoundException(LabDocumentNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
+@ExceptionHandler(LabDocumentNotFoundException.class)
+public ResponseEntity<String> handleLabDocumentNotFoundException(LabDocumentNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+}
 
-    @ExceptionHandler(LaboratoryNotFoundException.class)
-    public ResponseEntity<String> handleLabNotFound(LaboratoryNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+@ExceptionHandler(LaboratoryNotFoundException.class)
+public ResponseEntity<String> handleLabNotFound(LaboratoryNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+}
+
+@ExceptionHandler(HttpMessageNotReadableException.class)
+public ResponseEntity<String> handleParsingExceptions(HttpMessageNotReadableException ex) {
+    return ResponseEntity.badRequest().body("Malformed JSON or invalid input type.");
+}
+
+@ExceptionHandler(MissingFieldException.class)
+public ResponseEntity<String> handleMissingFieldException(MissingFieldException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+}
+
+@ExceptionHandler(MissingAccessRequestIdException.class)
+public ResponseEntity<String> handleMissingAccessRequestId(MissingAccessRequestIdException ex) {
+    return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body("Validation failed: " + ex.getMessage());
+}
+
     }
 }
 

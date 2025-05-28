@@ -17,11 +17,11 @@ public class EquipmentDTO {
     private Long id;
 
     @NotBlank(message = "Name is required")
-    @Size(max = 255, message = "Name must not exceed 255 characters")
+    @Size(max = 5000, message = "Name must not exceed 5000 characters")
     private String name;
 
     @NotBlank(message = "Inventory number is required")
-    @Size(max = 50, message = "Inventory number must not exceed 50 characters")
+    @Size(max = 5000, message = "Inventory number must not exceed 5000 characters")
     private String inventoryNumber;
 
     @NotNull(message = "Availability status must be specified")
@@ -30,7 +30,7 @@ public class EquipmentDTO {
     @NotNull(message = "Laboratory ID is required")
     private Long laboratoryId;
 
-    @Size(max = 255, message = "Access requirements must not exceed 255 characters")
+    @Size(max = 5000, message = "Access requirements must not exceed 5000 characters")
     private String accessRequirements;
 
     private String photo;

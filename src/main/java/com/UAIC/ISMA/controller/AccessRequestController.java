@@ -5,8 +5,6 @@ import com.UAIC.ISMA.dto.AccessRequestDTO;
 import com.UAIC.ISMA.entity.User;
 import com.UAIC.ISMA.entity.enums.RequestStatus;
 import com.UAIC.ISMA.entity.enums.RoleName;
-import com.UAIC.ISMA.exception.AccessRequestNotFoundException;
-import com.UAIC.ISMA.exception.UserNotFoundException;
 import com.UAIC.ISMA.service.AccessRequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.EnumSet;
 
 @RestController
 @RequestMapping("/access-requests")
@@ -39,12 +38,20 @@ public class AccessRequestController {
     }
 
     @Operation(summary = "Get all access requests", description = "Returns a list of all access requests")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @GetMapping
-    public ResponseEntity<List<AccessRequestDTO>> getAllAccessRequests() {
+    public ResponseEntity<List<AccessRequestDTO>> getAllAccessRequests(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         logger.info("Fetching all access requests");
         List<AccessRequestDTO> accessRequests = accessRequestService.findAll();
         return ResponseEntity.ok(accessRequests);
     }
+
 
     @Operation(summary = "Get access request by ID", description = "Returns a single access request by its unique ID")
     @GetMapping("/{id}")
@@ -56,6 +63,7 @@ public class AccessRequestController {
     }
 
     @Operation(summary = "Create a new access request", description = "Creates a new access request with the provided details")
+    @PreAuthorize("hasAnyAuthority('RESEARCHER', 'STUDENT')")
     @PostMapping
     public ResponseEntity<AccessRequestDTO> createAccessRequest(
             @Parameter(description = "Access request data to create") @Valid @RequestBody AccessRequestDTO dto) {
@@ -68,45 +76,68 @@ public class AccessRequestController {
     @Operation(summary = "Update an existing access request", description = "Updates the access request with the specified ID")
     @PutMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updateAccessRequest(
-            @Parameter(description = "Access request ID") @PathVariable Long id,
-            @Parameter(description = "Updated access request data") @Valid @RequestBody AccessRequestDTO dto) {
-        logger.info("Updating access request with ID {}", id);
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id,
+            @Valid @RequestBody AccessRequestDTO dto) {
+
+        // 🟢 Adăugăm verificarea manuală a rolului
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         AccessRequestDTO updatedRequest = accessRequestService.update(id, dto);
-        logger.debug("Updated access request with ID {}", updatedRequest.getId());
         return ResponseEntity.ok(updatedRequest);
     }
 
+
     @Operation(summary = "Partially update an access request", description = "Updates only the specified fields of an access request")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @PatchMapping("/{id}")
     public ResponseEntity<AccessRequestDTO> updatePartialAccessRequest(
-            @Parameter(description = "Access request ID") @PathVariable Long id,
-            @Parameter(description = "Fields to update") @RequestBody Map<String, Object> updates) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates) {
+
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         logger.info("Partially updating access request with ID {}", id);
         AccessRequestDTO updatedRequest = accessRequestService.updatePartial(id, updates);
         return ResponseEntity.ok(updatedRequest);
     }
 
+
+
     @Operation(summary = "Delete an access request", description = "Deletes the access request with the specified ID")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COORDONATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAccessRequest(
-            @Parameter(description = "Access request ID") @PathVariable Long id) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id) {
+
+        RoleName role = userDetails.getUser().getRole().getRoleName();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         logger.info("Deleting access request with ID {}", id);
         accessRequestService.delete(id);
-        logger.info("Deleted access request with ID {}", id);
         return ResponseEntity.noContent().build();
     }
 
+
     @PreAuthorize("hasAuthority('COORDONATOR')")
-    @PutMapping("/{id}/approve")
+    @PutMapping("/approve/{id}")
     public ResponseEntity<AccessRequestDTO> approveRequest(@PathVariable Long id) {
         AccessRequestDTO approvedRequest = accessRequestService.approveAccessRequest(id);
         return ResponseEntity.ok(approvedRequest);
     }
 
-
-    @Operation(summary = "Filter access requests", description = "Filter by status, equipment type, userId. Paginated.")
     @GetMapping("/search")
-    public ResponseEntity<Page<AccessRequestDTO>> filterAccessRequests(
+    public ResponseEntity<?> filterAccessRequests(
             @RequestParam(required = false) RequestStatus status,
             @RequestParam(required = false) String equipmentType,
             @RequestParam(required = false) Long userId,
@@ -117,8 +148,9 @@ public class AccessRequestController {
         User user = userDetails.getUser();
         RoleName role = user.getRole().getRoleName();
 
-        if (role == RoleName.STUDENT) {
-            userId = user.getId();
+        if (!EnumSet.of(RoleName.ADMIN, RoleName.COORDONATOR).contains(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Only ADMIN and COORDONATOR can filter access requests.");
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -130,21 +162,4 @@ public class AccessRequestController {
     }
 
 
-    @ExceptionHandler(AccessRequestNotFoundException.class)
-    public ResponseEntity<String> handleAccessRequestNotFoundException(AccessRequestNotFoundException ex) {
-        logger.warn("AccessRequestNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
-        logger.warn("UserNotFoundException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        logger.error("Unexpected error: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
-    }
 }

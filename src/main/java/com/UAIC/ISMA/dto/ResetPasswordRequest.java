@@ -1,7 +1,10 @@
 package com.UAIC.ISMA.dto;
+import jakarta.validation.constraints.NotBlank;
+
 
 public class ResetPasswordRequest {
     private String token;
+    @NotBlank
     private String newPassword;
 
     public String getToken() {
