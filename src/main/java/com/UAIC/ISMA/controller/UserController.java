@@ -36,15 +36,11 @@ public class UserController {
             return ResponseEntity.badRequest().body("User is already active or not eligible.");
         }
 
-        if (!user.getRole().getRoleName().equals(RoleName.STUDENT)) {
-            return ResponseEntity.badRequest().body("Only student accounts can be approved this way.");
-        }
-
         user.setStatus("active");
         userRepository.save(user);
         emailService.sendAccountApprovedNotification(user.getEmail());
 
-        return ResponseEntity.ok("Student account approved and activated.");
+        return ResponseEntity.ok("Account approved and activated.");
     }
 
     @GetMapping("/user/test")

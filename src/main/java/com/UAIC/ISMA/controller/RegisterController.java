@@ -53,8 +53,8 @@ public class RegisterController {
     public ResponseEntity<?> register(@Valid @RequestBody RegistrationRequest request) {
         String email = request.getEmail();
 
-        if (!email.endsWith("@student.uaic.ro")) {
-            throw new InvalidInputException("Email must end with @student.uaic.ro");
+        if (!email.endsWith("uaic.ro")) {
+            throw new InvalidInputException("Email must end with uaic.ro");
         }
 
         if (userRepository.existsByEmail(email)) {
@@ -68,13 +68,11 @@ public class RegisterController {
 
         String token = jwtUtil.generateResetToken(email);
 
-        Role studentRole = roleRepository.findByRoleName(RoleName.STUDENT);
-
         User user = new User();
         user.setEmail(email);
         user.setUsername(username);
-        user.setPassword(request.getRegistrationNumber());
-        user.setRole(studentRole);
+        user.setNrMarca(request.getNrMarca());
+        user.setPassword(request.getNrMarca());
         user.setStatus("inactive");
 
         userRepository.save(user);
@@ -84,7 +82,7 @@ public class RegisterController {
                 .body("Account created. Please check your email to set your password.");
     }
 
-    @PostMapping("/reset-password")
+    @PostMapping("/finish-register")
     @Operation(
             summary = "Creates password",
             description = "The user's new password is stored (hashed) in the database and the account becomes active"
@@ -103,6 +101,13 @@ public class RegisterController {
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setLastName(request.getLastName());
+        user.setFirstName(request.getFirstName());
+        user.setFacultate(request.getFacultate());
+        user.setGrupa(request.getGrupa());
+        user.setAn(request.getAn());
+        Role role = roleRepository.findByRoleName(request.getRole());
+        user.setRole(role);
         userRepository.save(user);
 
         return ResponseEntity.ok("Password set successfully");
