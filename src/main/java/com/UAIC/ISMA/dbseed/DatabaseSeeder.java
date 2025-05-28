@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
@@ -77,6 +78,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                         .equipment(eq1)
                         .status(RequestStatus.PENDING)
                         .requestType(RequestType.PHYSICAL)
+                        .requestDate(LocalDateTime.now())
                         .build();
 
                 request = accessRequestRepo.save(request);
