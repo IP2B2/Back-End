@@ -1,73 +1,70 @@
-name: PR Review Labeler
+name: PR Review Label Manager
 
 on:
   pull_request_review:
     types: [submitted]
-  pull_request:
-    types: [synchronize, reopened, opened, labeled, unlabeled]
 
 permissions:
   pull-requests: write
   issues: write
-  contents: read
 
 jobs:
-  label-review:
+  handle-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v7
+      - name: Get review state
+        id: review
+        uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
-            const repo = context.repo;
+            const { owner, repo } = context.repo;
 
-            const { data: existingLabels } = await github.rest.issues.listLabelsOnIssue({
-              owner: repo.owner,
-              repo: repo.repo,
-              issue_number: pr.number
-            });
-            const currentLabels = existingLabels.map(l => l.name);
-
-            // Fetch all reviews and only consider latest per user
             const { data: reviews } = await github.rest.pulls.listReviews({
-              owner: repo.owner,
-              repo: repo.repo,
+              owner,
+              repo,
               pull_number: pr.number
             });
 
-            const latestByUser = new Map();
-            for (const review of reviews) {
-              latestByUser.set(review.user.login, review);
+            const latest = new Map();
+            for (const r of reviews.reverse()) {
+              if (!latest.has(r.user.login) && ['APPROVED', 'CHANGES_REQUESTED'].includes(r.state)) {
+                latest.set(r.user.login, r.state);
+              }
             }
 
-            const hasChangesRequested = [...latestByUser.values()].some(
-              review => review.state === 'CHANGES_REQUESTED'
-            );
+            const values = [...latest.values()];
+            const approvals = values.filter(v => v === 'APPROVED').length;
+            const changesRequested = values.includes('CHANGES_REQUESTED');
 
-            const hasConflicts = currentLabels.includes('has-conflicts');
+            core.setOutput("approvals", approvals);
+            core.setOutput("changesRequested", changesRequested);
 
-            if (hasChangesRequested && !hasConflicts) {
-              if (!currentLabels.includes('needs-work')) {
-                await github.rest.issues.addLabels({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: pr.number,
-                  labels: ['needs-work']
-                });
-              }
-              if (currentLabels.includes('ready-to-run')) {
-                await github.rest.issues.removeLabel({
-                  owner: repo.owner,
-                  repo: repo.repo,
-                  issue_number: pr.number,
-                  name: 'ready-to-run'
-                }).catch(() => {});
-              }
-            } else if (!hasChangesRequested && currentLabels.includes('needs-work')) {
-              await github.rest.issues.removeLabel({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: pr.number,
-                name: 'needs-work'
-              }).catch(() => {});
-            }
+      - name: Remove 'to-review'
+        if: steps.review.outputs.approvals >= 2 || steps.review.outputs.changesRequested == 'true'
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: to-review
+
+      - name: Add 'ready-to-run'
+        if: steps.review.outputs.approvals >= 2
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ready-to-run
+
+      - name: Remove 'ready-to-run' (if changes requested)
+        if: steps.review.outputs.changesRequested == 'true'
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ready-to-run
+
+      - name: Add 'needs-work'
+        if: steps.review.outputs.changesRequested == 'true'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: needs-work
+

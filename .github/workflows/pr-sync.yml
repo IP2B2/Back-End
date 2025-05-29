@@ -1,0 +1,58 @@
+name: PR Synchronize Label Resolver
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  handle-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current labels
+        id: labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request.number;
+            const { data } = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number: number });
+            return data.map(l => l.name);
+
+      - name: Remove 'needs-work'
+        if: contains(fromJSON(steps.labels.outputs.result), 'needs-work')
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: needs-work
+
+      - name: Add 'to-review'
+        if: contains(fromJSON(steps.labels.outputs.result), 'needs-work')
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: to-review
+
+      - name: Check for rejections (conflicts or new change requests)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request.number;
+
+            const { data: reviews } = await github.rest.pulls.listReviews({ owner, repo, pull_number: number });
+            const latest = new Map();
+            for (const r of reviews.reverse()) {
+              if (!latest.has(r.user.login) && ['APPROVED', 'CHANGES_REQUESTED'].includes(r.state)) {
+                latest.set(r.user.login, r.state);
+              }
+            }
+            const needsWork = [...latest.values()].includes('CHANGES_REQUESTED');
+            if (needsWork) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: ['needs-work'] });
+              await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'ready-to-run' }).catch(() => {});
+            }
+
