@@ -52,7 +52,7 @@ public class AuthController {
 
             return ResponseEntity.ok(new AuthResponse(token));
 
-        } catch (BadCredentialsException | UsernameNotFoundException | InternalAuthenticationServiceException ex) {
+        } catch (BadCredentialsException | UsernameNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid username, email or password"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Something went wrong"));
