@@ -44,6 +44,8 @@ public class EquipmentDTO {
 
     @Size(max = 2500, message = "Description must not exceed 2500 characters")
     private String description;
+    
+    private Boolean isComplex;
 
     public EquipmentDTO(Long id, String name, String photo, String inventoryNumber, LocalDateTime acquisitionDate
     , AvailabilityStatus availabilityStatus, Long laboratoryId, String accessRequirements) {
