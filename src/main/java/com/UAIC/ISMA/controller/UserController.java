@@ -43,6 +43,20 @@ public class UserController {
         return ResponseEntity.ok("Account approved and activated.");
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Delete user by ID",
+            description = "Allows an admin to permanently delete a user account by ID"
+    )
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        userRepository.delete(user);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/user/test")
     public String userTest() {
         return "Hello, User!";

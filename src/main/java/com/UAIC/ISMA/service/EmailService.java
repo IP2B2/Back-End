@@ -11,7 +11,7 @@ public class EmailService {
     private JavaMailSender mailSender;
 
     public void sendActivationEmail(String to, String token) {
-        String url = "https://ismauaic.com/reset-password?token=" + token;
+        String url = "https://ismauaic.com/auth/finish-register?token=" + token;
         String subject = "Completeaza cu datele tale";
         String message = "Hello!\n\nContul tau a fost creat, dar nu este verificat inca.\n\n" +
                 "Pentru a se activa contul, este nevoie sa iti setezi o parola si sa oferi mai multe date, accesand acest link:\n" + url +
