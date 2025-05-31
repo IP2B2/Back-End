@@ -20,6 +20,7 @@ public class EquipmentMapper {
         dto.setUsage(equipment.getUsage());
         dto.setMaterial(equipment.getMaterial());
         dto.setDescription(equipment.getDescription());
+        dto.setIsComplex(equipment.getIsComplex());
 
         if (equipment.getLaboratory() != null) {
             dto.setLaboratoryId(equipment.getLaboratory().getId());
@@ -39,6 +40,7 @@ public class EquipmentMapper {
         e.setUsage(dto.getUsage());
         e.setMaterial(dto.getMaterial());
         e.setDescription(dto.getDescription());
+        e.setIsComplex(dto.getIsComplex());
 
         if (dto.getLaboratoryId() != null) {
             Laboratory lab = laboratoryRepository.findById(dto.getLaboratoryId())

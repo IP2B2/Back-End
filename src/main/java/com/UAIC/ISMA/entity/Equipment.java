@@ -48,6 +48,8 @@ public class Equipment implements Serializable {
     @Column(length = 2500)
     private String description;
 
+    private Boolean isComplex;
+
     public Equipment(String name, String inventoryNumber, LocalDateTime acquisitionDate,
                      AvailabilityStatus availabilityStatus, String accessRequirements, Laboratory laboratory) {
         this.name = name;
