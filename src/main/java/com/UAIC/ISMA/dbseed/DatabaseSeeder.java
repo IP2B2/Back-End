@@ -3,11 +3,13 @@ package com.UAIC.ISMA.dbseed;
 import com.UAIC.ISMA.entity.*;
 import com.UAIC.ISMA.entity.enums.*;
 import com.UAIC.ISMA.repository.*;
+import com.github.javafaker.Faker;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.*;
 
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
@@ -15,7 +17,6 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-
     private final LaboratoryRepository labRepo;
     private final EquipmentRepository equipmentRepo;
     private final AccessRequestRepository accessRequestRepo;
@@ -54,8 +55,71 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        for (RoleName roleName : RoleName.values()) {
-            seedRoleIfNotExists(roleName);
+        Faker faker = new Faker(new Locale("ro"));
+        Random random = new Random();
+
+
+        if (roleRepository.findByRoleName(RoleName.ADMIN) == null)
+        {
+            Role role = new Role();
+        role.setRoleName(RoleName.ADMIN);
+        role.setName("Administrator");
+        roleRepository.save(role);
+        }
+
+        if (roleRepository.findByRoleName(RoleName.STUDENT) == null)
+        {
+            Role role = new Role();
+            role.setRoleName(RoleName.STUDENT);
+            role.setName("Student");
+            roleRepository.save(role);
+        }
+
+        if (roleRepository.findByRoleName(RoleName.RESEARCHER) == null)
+        {
+            Role role = new Role();
+            role.setRoleName(RoleName.RESEARCHER);
+            role.setName("Researcher");
+            roleRepository.save(role);
+        }
+
+        if (roleRepository.findByRoleName(RoleName.COORDONATOR) == null)
+        {
+            Role role = new Role();
+            role.setRoleName(RoleName.COORDONATOR);
+            role.setName("Coordonator");
+            roleRepository.save(role);
+        }
+        List<Role> roles = roleRepository.findAll();
+
+        List<Laboratory> laboratories = new ArrayList<>();
+        for (int i = 0; i < 200; i++) {
+            Laboratory lab = new Laboratory(
+                    "Laborator " + faker.university().name() + " " + (i+1),
+                    faker.company().industry(),
+                    "Etaj " + (random.nextInt(4) + 1)
+            );
+            laboratories.add(labRepo.save(lab));
+        }
+
+
+        List<Equipment> equipments = new ArrayList<>();
+        for (int i = 0; i < 200; i++) {
+            Laboratory lab = laboratories.get(random.nextInt(laboratories.size()));
+            Equipment eq = new Equipment(
+                    "Echipament " + faker.commerce().productName() + " " + (i+1),
+                    "INV" + (1000 + i),
+                    LocalDateTime.now().minusDays(random.nextInt(700)),
+                    AvailabilityStatus.values()[i % AvailabilityStatus.values().length],
+                    "Badge" + (1000 + i),
+                    lab
+            );
+            eq.setPhoto("https://picsum.photos/seed/" + i + "/300/200");
+            eq.setUsage(faker.lorem().sentence(6));
+            eq.setMaterial(faker.commerce().material());
+            eq.setDescription(faker.lorem().paragraph(2));
+            eq.setIsComplex(random.nextBoolean());
+            equipments.add(equipmentRepo.save(eq));
         }
 
         seedUserIfNotExists("admin@student.uaic.ro", "Admin User", "admin123", RoleName.ADMIN,
@@ -70,54 +134,97 @@ public class DatabaseSeeder implements CommandLineRunner {
         seedUserIfNotExists("student@student.uaic.ro", "Student User", "student123", RoleName.STUDENT,
                 "Student", "User", "Informatica", "1", "D4", "45678");
 
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < 200; i++) {
 
-        if (labRepo.count() == 0) {
-            Laboratory lab1 = labRepo.save(new Laboratory("Lab A", "Microscopie", "Etaj 1"));
-            Laboratory lab2 = labRepo.save(new Laboratory("Lab B", "Chimie", "Etaj 2"));
+            Role role = roles.get(i % roles.size());
+            String firstName = "User" ;
+            String lastName = "Name"+ (i+1);
+            String email = (firstName + "." + lastName  + "@uaic.ro").toLowerCase();
+            String an = role.getRoleName() == RoleName.STUDENT ? String.valueOf(random.nextInt(4) + 1) : null;
+            String grupa = role.getRoleName() == RoleName.STUDENT ? "G" + (random.nextInt(10) + 1) : null;
+            String nrMarca = role.getRoleName() == RoleName.STUDENT ? "M" + (10000 + i) : null;
+            String status = random.nextBoolean() ? "active" : "inactive";
+            User user = new User(
+                    null,
+                    firstName + " " + lastName,
+                    email,
+                    passwordEncoder.encode("password"),
+                    status,
+                    firstName,
+                    lastName,
+                    faker.university().name(),
+                    an,
+                    grupa,
+                    nrMarca,
+                    role,
+                    null, null, null, null, null
+            );
+            users.add(userRepository.save(user));
+        }
 
-            Equipment eq1 = equipmentRepo.save(new Equipment("Microscop X", "INV123", LocalDateTime.now().minusMonths(2), AvailabilityStatus.AVAILABLE, "Badge123", lab1));
-            Equipment eq2 = equipmentRepo.save(new Equipment("Spectrometru Y", "INV456", LocalDateTime.now().minusMonths(1), AvailabilityStatus.IN_USE, "Badge456", lab2));
 
-            User student = userRepository.findByEmail("student@student.uaic.ro");
-            if (student != null) {
-                AccessRequest request = AccessRequest.builder()
-                        .user(student)
-                        .equipment(eq1)
-                        .status(RequestStatus.PENDING)
-                        .requestType(RequestType.PHYSICAL)
-                        .requestDate(LocalDateTime.now())
-                        .build();
+        List<AccessRequest> accessRequests = new ArrayList<>();
+        for (int i = 0; i < 200; i++) {
+            User user = users.get(random.nextInt(users.size()));
+            Equipment equipment = equipments.get(random.nextInt(equipments.size()));
+            AccessRequest ar = AccessRequest.builder()
+                    .user(user)
+                    .equipment(equipment)
+                    .requestDate(LocalDateTime.now().minusDays(random.nextInt(500)))
+                    .status(RequestStatus.values()[i % RequestStatus.values().length])
+                    .requestType(RequestType.values()[i % RequestType.values().length])
+                    .proposalFile("cerere_" + i + ".pdf")
+                    .expectedReturnDate(LocalDateTime.now().plusDays(random.nextInt(90)))
+                    .build();
+            ar = accessRequestRepo.save(ar);
+            accessRequests.add(ar);
 
-                request = accessRequestRepo.save(request);
+
+            approvalRepo.save(new RequestApproval(
+                    ApprovalStatus.values()[i % ApprovalStatus.values().length],
+                    ar,
+                    user,
+                    faker.lorem().sentence(5)));
 
 
-                approvalRepo.save(new RequestApproval(ApprovalStatus.PENDING, request, student, "Initial verification"));
-                docRepo.save(new RequestDocument("Cerere Microscop", "Cerere pentru acces microscop", "/files/microscop.pdf", request, student));
-                virtualAccessRepo.save(new VirtualAccess("virt_student", passwordEncoder.encode("virtpass"), request));
+            docRepo.save(new RequestDocument(
+                    "Document " + i,
+                    faker.lorem().sentence(10),
+                    "/files/document" + i + ".pdf",
+                    ar,
+                    user));
 
-                auditRepo.save(new AuditLog("CREATE_REQUEST", "Studentul a creat o cerere de acces", student));
-                notificationRepo.save(new Notification("Cererea ta a fost înregistrată.", student));
-            }
 
+            virtualAccessRepo.save(new VirtualAccess(
+                    "virt_" + user.getUsername().replace(" ", "").toLowerCase() + "_" + i,
+                    "virtpass" + i,
+                    ar));
+
+
+            auditRepo.save(new AuditLog(
+                    faker.hacker().verb().toUpperCase() + "_REQUEST",
+                    faker.lorem().sentence(10),
+                    user));
+
+
+            notificationRepo.save(new Notification(
+                    faker.lorem().sentence(12),
+                    user));
+        }
+
+
+        for (int i = 0; i < 200; i++) {
+            Laboratory lab = laboratories.get(random.nextInt(laboratories.size()));
             labDocRepo.save(LabDocument.builder()
-                    .filename("Regulament Lab A")
+                    .filename("Document_" + i + ".pdf")
                     .fileType("application/pdf")
-                    .version("v1.0")
-                    .filePath("/docs/lab-a.pdf")
-                    .lab(lab1)
+                    .version("v" + (random.nextInt(3) + 1) + ".0")
+                    .filePath("/docs/" + "document" + i + ".pdf")
+                    .lab(lab)
                     .build());
-
         }
     }
-
-    private void seedRoleIfNotExists(RoleName roleName) {
-        if (roleRepository.findByRoleName(roleName) == null) {
-            Role role = new Role();
-            role.setRoleName(roleName);
-            roleRepository.save(role);
-        }
-    }
-
     private void seedUserIfNotExists(String email, String username, String rawPassword, RoleName roleName,
                                      String firstName, String lastName, String facultate, String an, String grupa, String nrMarca) {
         if (!userRepository.existsByEmail(email)) {
@@ -128,5 +235,4 @@ public class DatabaseSeeder implements CommandLineRunner {
             userRepository.save(user);
         }
     }
-
 }
