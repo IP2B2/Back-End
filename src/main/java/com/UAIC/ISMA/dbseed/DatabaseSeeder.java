@@ -3,6 +3,8 @@ package com.UAIC.ISMA.dbseed;
 import com.UAIC.ISMA.entity.*;
 import com.UAIC.ISMA.entity.enums.*;
 import com.UAIC.ISMA.repository.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,7 +58,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws JsonProcessingException {
         Faker faker = new Faker(new Locale("ro"));
         Random random = new Random();
 
@@ -118,7 +120,10 @@ public class DatabaseSeeder implements CommandLineRunner {
             );
 
 
-            eq.setPhoto("[\\\"https://i.imgur.com/s2dxEyx.png\\\"]");
+            List<String> photos = new ArrayList<>();
+            photos.add("https://i.imgur.com/s2dxEyx.png");
+            String photosJson = new ObjectMapper().writeValueAsString(photos);
+            eq.setPhoto(photosJson);
             eq.setUsage(faker.lorem().sentence(6));
             eq.setMaterial(faker.commerce().material());
             eq.setDescription(faker.lorem().paragraph(2));
