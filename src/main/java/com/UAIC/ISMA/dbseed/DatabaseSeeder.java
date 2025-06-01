@@ -60,15 +60,30 @@ public class DatabaseSeeder implements CommandLineRunner {
         Faker faker = new Faker(new Locale("ro"));
         Random random = new Random();
 
-        // Seed roles
-        if (roleRepository.findByRoleName(RoleName.ADMIN) == null)
-            roleRepository.save(new Role(RoleName.ADMIN, "Administrator"));
-        if (roleRepository.findByRoleName(RoleName.STUDENT) == null)
-            roleRepository.save(new Role(RoleName.STUDENT, "Student"));
-        if (roleRepository.findByRoleName(RoleName.RESEARCHER) == null)
-            roleRepository.save(new Role(RoleName.RESEARCHER, "Researcher"));
-        if (roleRepository.findByRoleName(RoleName.COORDONATOR) == null)
-            roleRepository.save(new Role(RoleName.COORDONATOR, "Coordonator"));
+        if (roleRepository.findByRoleName(RoleName.ADMIN) == null) {
+            Role role = new Role();
+            role.setRoleName(RoleName.ADMIN);
+            role.setName("Administrator");
+            roleRepository.save(role);
+        }
+        if (roleRepository.findByRoleName(RoleName.STUDENT) == null) {
+            Role role = new Role();
+            role.setRoleName(RoleName.STUDENT);
+            role.setName("Student");
+            roleRepository.save(role);
+        }
+        if (roleRepository.findByRoleName(RoleName.RESEARCHER) == null) {
+            Role role = new Role();
+            role.setRoleName(RoleName.RESEARCHER);
+            role.setName("Researcher");
+            roleRepository.save(role);
+        }
+        if (roleRepository.findByRoleName(RoleName.COORDONATOR) == null) {
+            Role role = new Role();
+            role.setRoleName(RoleName.COORDONATOR);
+            role.setName("Coordonator");
+            roleRepository.save(role);
+        }
 
         List<Role> roles = roleRepository.findAll();
 
@@ -125,13 +140,20 @@ public class DatabaseSeeder implements CommandLineRunner {
                 default -> "AD";
             } + (10000 + i);
             String status = random.nextBoolean() ? "active" : "inactive";
-            User user = new User(null, firstName + " " + lastName, email, passwordEncoder.encode("password"),
-                    status, firstName, lastName, faker.university().name(), an, grupa, nrMarca, role,
-                    null, null, null, null, null);
-            users.add(userRepository.save(user));
+
+            if (!userRepository.existsByEmail(email)) {
+                User user = new User(null, firstName + " " + lastName, email, passwordEncoder.encode("password"),
+                        status, firstName, lastName, faker.university().name(), an, grupa, nrMarca, role,
+                        null, null, null, null, null);
+                users.add(userRepository.save(user));
+            } else {
+                // Dacă deja există, îl adaugăm în lista pentru referință ulterioară (la requesturi)
+                users.add(userRepository.findByEmail(email));
+            }
         }
 
-        // Ensure each equipment has at least 3 approved access requests
+
+        // 3 cereri aprobate per echipament
         for (Equipment eq : equipments) {
             for (int j = 0; j < 3; j++) {
                 User user = users.get(random.nextInt(users.size()));
@@ -148,7 +170,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                         .borrowerAddress(faker.address().fullAddress())
                         .build();
                 ar = accessRequestRepo.save(ar);
-
                 approvalRepo.save(new RequestApproval(ApprovalStatus.APPROVED, ar, user, faker.lorem().sentence(5)));
                 docRepo.save(new RequestDocument("Document_INIT_" + j, faker.lorem().sentence(10), "/files/doc_INIT_" + j + ".pdf", ar, user));
                 virtualAccessRepo.save(new VirtualAccess("virt_" + user.getUsername().toLowerCase().replace(" ", "") + "_init_" + j, "virtpass_init" + j, ar));
@@ -157,6 +178,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
         }
 
+        // Diverse cereri random
         for (int i = 0; i < 200; i++) {
             User user = users.get(random.nextInt(users.size()));
             Equipment equipment = equipments.get(random.nextInt(equipments.size()));
@@ -173,7 +195,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .borrowerAddress(faker.address().fullAddress())
                     .build();
             ar = accessRequestRepo.save(ar);
-
             approvalRepo.save(new RequestApproval(ApprovalStatus.values()[i % ApprovalStatus.values().length], ar, user, faker.lorem().sentence(5)));
             docRepo.save(new RequestDocument("Document " + i, faker.lorem().sentence(10), "/files/document" + i + ".pdf", ar, user));
             virtualAccessRepo.save(new VirtualAccess("virt_" + user.getUsername().toLowerCase().replace(" ", "") + "_" + i, "virtpass" + i, ar));
@@ -198,8 +219,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (!userRepository.existsByEmail(email)) {
             Role role = roleRepository.findByRoleName(roleName);
             User user = new User(null, username, email, passwordEncoder.encode(rawPassword), "active", firstName, lastName,
-                    facultate, an, grupa, nrMarca, role, null, null, null, null, null
-            );
+                    facultate, an, grupa, nrMarca, role, null, null, null, null, null);
             userRepository.save(user);
         }
     }
