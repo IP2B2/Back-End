@@ -1,5 +1,6 @@
 package com.UAIC.ISMA.dbseed;
 
+import ch.qos.logback.core.joran.spi.ElementSelector;
 import com.UAIC.ISMA.entity.*;
 import com.UAIC.ISMA.entity.enums.*;
 import com.UAIC.ISMA.repository.*;
@@ -132,16 +133,16 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         seedUserIfNotExists("admin@student.uaic.ro", "Admin User", "admin123", RoleName.ADMIN,
-                "Admin", "User", "Informatica", null, null, null);
+                "Admin", "User", "Informatica", null, null, "ADM001");
 
         seedUserIfNotExists("coordonator@student.uaic.ro", "Coordonator User", "coordonator123", RoleName.COORDONATOR,
-                "Coordonator", "User", "Informatica", null, null, null);
+                "Coordonator", "User", "Informatica", null, null, "COORD001");
 
         seedUserIfNotExists("researcher@student.uaic.ro", "Researcher User", "researcher123", RoleName.RESEARCHER,
-                "Researcher", "User", "Informatica", null, null, null);
+                "Researcher", "User", "Informatica", null, null, "RESEAR001");
 
         seedUserIfNotExists("student@student.uaic.ro", "Student User", "student123", RoleName.STUDENT,
-                "Student", "User", "Informatica", "1", "D4", "45678");
+                "Student", "User", "Informatica", "1", "D4", "STUD001");
 
         List<User> users = new ArrayList<>();
         for (int i = 0; i < 200; i++) {
@@ -152,7 +153,18 @@ public class DatabaseSeeder implements CommandLineRunner {
             String email = (firstName + "." + lastName  + "@uaic.ro").toLowerCase();
             String an = role.getRoleName() == RoleName.STUDENT ? String.valueOf(random.nextInt(4) + 1) : null;
             String grupa = role.getRoleName() == RoleName.STUDENT ? "G" + (random.nextInt(10) + 1) : null;
-            String nrMarca = role.getRoleName() == RoleName.STUDENT ? "M" + (10000 + i) : null;
+            RoleName rol=role.getRoleName();
+            String nrMarca ="";
+            if(rol==RoleName.STUDENT)
+                nrMarca = "ST";
+            else if (rol==RoleName.RESEARCHER)
+                nrMarca = "RE";
+            else if (rol==RoleName.COORDONATOR)
+                nrMarca = "CO";
+            else if (rol==RoleName.ADMIN)
+                nrMarca = "AD";
+
+             nrMarca= nrMarca  + (10000 + i) ;
             String status = random.nextBoolean() ? "active" : "inactive";
             User user = new User(
                     null,
@@ -185,6 +197,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .requestType(RequestType.values()[i % RequestType.values().length])
                     .proposalFile("cerere_" + i + ".pdf")
                     .expectedReturnDate(LocalDateTime.now().plusDays(random.nextInt(90)))
+                    .borrowerCNP(String.valueOf(random.nextInt(9)+1)+String.valueOf(random.nextInt(899999999)+100000000)+String.valueOf(random.nextInt(899)+100))
+                    .borrowerAddress(faker.address().fullAddress())
                     .build();
             ar = accessRequestRepo.save(ar);
             accessRequests.add(ar);
