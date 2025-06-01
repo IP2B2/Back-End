@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.hibernate.type.SqlTypes.JSON;
+
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
 
@@ -114,7 +116,9 @@ public class DatabaseSeeder implements CommandLineRunner {
                     "Badge" + (1000 + i),
                     lab
             );
-            eq.setPhoto("https://picsum.photos/seed/" + i + "/300/200");
+
+
+            eq.setPhoto("[\\\"https://i.imgur.com/s2dxEyx.png\\\"]");
             eq.setUsage(faker.lorem().sentence(6));
             eq.setMaterial(faker.commerce().material());
             eq.setDescription(faker.lorem().paragraph(2));
