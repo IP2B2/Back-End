@@ -20,7 +20,7 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
     SELECT new com.UAIC.ISMA.dto.AccessRequestDTO(
         ar.id, ar.requestDate, ar.status, ar.requestType,
         ar.proposalFile, ar.expectedReturnDate,
-        ar.user.id, ar.equipment.id)
+        ar.user.id, ar.equipment.id, ar.borrowerCNP, ar.borrowerAddress)
     FROM AccessRequest ar
     WHERE (:status IS NULL OR ar.status = :status)
       AND (:equipmentType IS NULL OR ar.equipment.name LIKE :equipmentType)
@@ -38,7 +38,8 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
     @Query("SELECT new com.UAIC.ISMA.dto.AccessRequestDTO(" +
             "ar.id, ar.requestDate, ar.status, ar.requestType, " +
             "ar.proposalFile, ar.expectedReturnDate, " +
-            "ar.user.id, ar.equipment.id) " +
+            "ar.user.id, ar.equipment.id," +
+            "ar.borrowerCNP,ar.borrowerAddress) " +
             "FROM AccessRequest ar " +
             "WHERE ar.user.id = :userId " +
             "AND (:status IS NULL OR ar.status = :status) " +
@@ -57,7 +58,7 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
                 SELECT new com.UAIC.ISMA.dto.AccessRequestDTO(
                     ar.id, ar.requestDate, ar.status, ar.requestType,
                     ar.proposalFile, ar.expectedReturnDate,
-                    ar.user.id, ar.equipment.id)
+                    ar.user.id, ar.equipment.id, ar.borrowerCNP,ar.borrowerAddress)
                 FROM AccessRequest ar
                 WHERE ar.user.id = :userId
             """)
@@ -69,7 +70,7 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
 SELECT new com.UAIC.ISMA.dto.AccessRequestDTO(
     ar.id, ar.requestDate, ar.status, ar.requestType,
     ar.proposalFile, ar.expectedReturnDate,
-    ar.user.id, ar.equipment.id)
+    ar.user.id, ar.equipment.id, ar.borrowerCNP,ar.borrowerAddress)
 FROM AccessRequest ar
 WHERE ar.user.id = :userId
 AND ar.status = :status
@@ -88,7 +89,7 @@ AND ar.requestDate < :end
 SELECT new com.UAIC.ISMA.dto.AccessRequestDTO(
     ar.id, ar.requestDate, ar.status, ar.requestType,
     ar.proposalFile, ar.expectedReturnDate,
-    ar.user.id, ar.equipment.id)
+    ar.user.id, ar.equipment.id,  ar.borrowerCNP,ar.borrowerAddress)
 FROM AccessRequest ar
 WHERE ar.user.id = :userId
 AND ar.status = :status
@@ -103,7 +104,7 @@ AND ar.status = :status
 SELECT new com.UAIC.ISMA.dto.AccessRequestDTO(
     ar.id, ar.requestDate, ar.status, ar.requestType,
     ar.proposalFile, ar.expectedReturnDate,
-    ar.user.id, ar.equipment.id)
+    ar.user.id, ar.equipment.id,  ar.borrowerCNP,ar.borrowerAddress)
 FROM AccessRequest ar
 WHERE ar.user.id = :userId
 AND ar.requestDate >= :start
