@@ -29,9 +29,6 @@ public class Role implements Serializable {
         this.roleName = roleName;
     }
 
-    public Role(RoleName roleName, String administrator) {
-    }
-
     public Long getId() {
         return id;
     }
