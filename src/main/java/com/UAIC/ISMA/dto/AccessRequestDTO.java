@@ -20,4 +20,6 @@ public class AccessRequestDTO {
     private LocalDateTime expectedReturnDate;
     private Long userId;
     private Long equipmentId;
+    private String borrowerCNP;
+    private String borrowerAddress;
 }

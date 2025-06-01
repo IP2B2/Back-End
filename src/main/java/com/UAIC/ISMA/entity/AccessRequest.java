@@ -44,6 +44,11 @@ public class AccessRequest implements Serializable {
 
     private LocalDateTime expectedReturnDate;
 
+    @Column(length = 15)
+    private String borrowerCNP;
+
+    @Column(length = 80)
+    private String borrowerAddress;
     @NotNull
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)

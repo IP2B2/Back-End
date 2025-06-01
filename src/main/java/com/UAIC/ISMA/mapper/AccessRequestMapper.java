@@ -14,7 +14,9 @@ public class AccessRequestMapper {
                 entity.getProposalFile(),
                 entity.getExpectedReturnDate(),
                 entity.getUser().getId(),
-                entity.getEquipment().getId()
+                entity.getEquipment().getId(),
+                entity.getBorrowerCNP(),
+                entity.getBorrowerAddress()
         );
     }
 
@@ -25,6 +27,8 @@ public class AccessRequestMapper {
         entity.setRequestType(dto.getRequestType());
         entity.setProposalFile(dto.getProposalFile());
         entity.setExpectedReturnDate(dto.getExpectedReturnDate());
+        entity.setBorrowerCNP(dto.getBorrowerCNP());
+        entity.setBorrowerAddress(dto.getBorrowerAddress());
         return entity;
     }
 }

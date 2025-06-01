@@ -83,6 +83,12 @@ public class AccessRequestService {
         if (dto.getEquipmentId() == null) {
             throw new MissingFieldException("Equipment ID");
         }
+        if(dto.getBorrowerCNP() == null) {
+            throw new MissingFieldException("Borrower CNP");
+        }
+        if(dto.getBorrowerAddress() == null) {
+            throw new MissingFieldException("Borrower address");
+        }
 
         String username = ((UserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal()).getUsername();
